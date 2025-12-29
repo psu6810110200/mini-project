@@ -1,26 +1,48 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateWeaponDto } from './dto/create-weapon.dto';
 import { UpdateWeaponDto } from './dto/update-weapon.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Weapon } from './entities/weapon.entity';
 
 @Injectable()
 export class WeaponsService {
-  create(createWeaponDto: CreateWeaponDto) {
-    return 'This action adds a new weapon';
+  constructor(
+    @InjectRepository(Weapon)
+    private weaponRepository: Repository<Weapon>,
+  ) {}
+  // Create Weapon
+  async create(createWeaponDto: CreateWeaponDto) {
+    const weapon = this.weaponRepository.create(createWeaponDto);
+    return await this.weaponRepository.save(weapon);
   }
 
-  findAll() {
-    return `This action returns all weapons`;
+  // Get all weapons
+  async findAll(): Promise<Weapon[]> {
+    return await this.weaponRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} weapon`;
+  // Get one weapon by ID
+  async findOne(id: string): Promise<Weapon> {
+    const weapon = await this.weaponRepository.findOneBy({ id });
+    if (!weapon) {
+      throw new NotFoundException(`Weapon with ID ${id} not found`);
+    }
+    return weapon;
   }
 
-  update(id: number, updateWeaponDto: UpdateWeaponDto) {
-    return `This action updates a #${id} weapon`;
+  // Update a weapon
+  async update(id: string, updateWeaponDto: UpdateWeaponDto): Promise<Weapon> {
+    const weapon = await this.findOne(id); // Ensure it exists
+    this.weaponRepository.merge(weapon, updateWeaponDto);
+    return await this.weaponRepository.save(weapon);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} weapon`;
+  // Delete a weapon
+  async remove(id: string): Promise<void> {
+    const result = await this.weaponRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Weapon with ID ${id} not found`);
+    }
   }
 }

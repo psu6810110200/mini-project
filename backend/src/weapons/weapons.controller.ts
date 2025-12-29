@@ -19,7 +19,7 @@ export class WeaponsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.weaponsService.findOne(+id);
+    return this.weaponsService.findOne(id);
   }
 
   // --- โซน Admin ---
@@ -35,13 +35,13 @@ export class WeaponsController {
   @Roles(UserRole.ADMIN)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateWeaponDto: UpdateWeaponDto) {
-    return this.weaponsService.update(+id, updateWeaponDto);
+    return this.weaponsService.update(id, updateWeaponDto);
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.ADMIN)
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.weaponsService.remove(+id);
+    return this.weaponsService.remove(id);
   }
 }
