@@ -8,6 +8,7 @@ import { AuthProvider, AuthContext } from './context/AuthContext';
 import { useContext } from 'react';
 import React from 'react';
 import Navbar from './components/Navbar'; // [เพิ่ม] import Navbar
+import AdminDashboard from './pages/AdminDashboard';
 
 // สร้าง Component เพื่อป้องกันหน้า Home (ถ้ายังไม่ Login ให้เด้งไป Login)
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -15,6 +16,21 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (!auth?.isAuthenticated) {
     return <Navigate to="/login" />;
   }
+  return children as React.ReactElement;
+};
+
+// [เพิ่ม] เช็คว่าเป็น Admin หรือไม่
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const auth = useContext(AuthContext);
+  
+  if (!auth?.isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+  
+  if (auth.user?.role !== 'admin') {
+    return <Navigate to="/" />; // ถ้าไม่ใช่ Admin ให้เด้งไปหน้า Home
+  }
+
   return children as React.ReactElement;
 };
 
@@ -43,6 +59,11 @@ function App() {
           <ProtectedRoute>
             <HomePage />
           </ProtectedRoute>
+        } />
+        <Route path="/admin" element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
         } />
       </Routes>
       

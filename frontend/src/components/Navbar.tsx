@@ -26,6 +26,14 @@ const Navbar = () => {
           {auth?.isAuthenticated && !isAuthPage ? (
             // กรณี Login แล้ว และไม่อยู่หน้า Login
             <>
+
+              {/* [เพิ่ม] แสดงลิงก์ Admin เฉพาะถ้าเป็น Admin */}
+              {auth.user?.role === 'admin' && (
+                <Link to="/admin" className="navbar-item" style={{ marginRight: '15px', fontWeight: 'bold', color: '#ff4d4d' }}>
+                  ⚙️ Admin Dashboard
+                </Link>
+              )}
+              
               <span className="navbar-user">
                 สวัสดี, <strong>{auth.user?.username}</strong> ({auth.user?.role})
               </span>
