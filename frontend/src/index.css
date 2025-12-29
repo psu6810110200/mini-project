@@ -45,3 +45,58 @@ button {
 }
 button:hover { background-color: #0056b3; }
 .error { color: red; font-size: 0.9rem; }
+
+/* Navbar Styles */
+.navbar {
+  background-color: rgba(0, 0, 0, 0.8); /* พื้นหลังสีดำโปร่งแสง */
+  color: white;
+  padding: 1rem 0;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #ffc107; /* สีเหลืองทอง */
+  text-decoration: none;
+}
+
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.navbar-item {
+  color: #ddd;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.navbar-item:hover {
+  color: white;
+}
+
+.navbar-user {
+  margin-right: 10px;
+  color: white;
+}
+
+/* ปุ่ม Logout ใน Navbar (Override ค่า width 100% เดิม) */
+.btn-logout {
+  width: auto;
+  padding: 8px 16px;
+  background-color: #dc3545;
+  margin: 0;
+}
+
+.btn-logout:hover {
+  background-color: #c82333;
+}
