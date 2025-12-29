@@ -1,0 +1,66 @@
+/* src/pages/HomePage.css */
+
+.weapon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* จัด Grid อัตโนมัติ */
+  gap: 20px;
+  padding: 20px 0;
+}
+
+.weapon-card {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  background-color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.weapon-card:hover {
+  transform: translateY(-5px); /* ลอยขึ้นเมื่อเอาเมาส์ชี้ */
+  box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+}
+
+/* แถบสีด้านซ้ายของการ์ด เพื่อบอกประเภท */
+.weapon-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+}
+
+/* แยกสีตาม Category */
+.card-light::before { background-color: #28a745; } /* สีเขียว */
+.card-light .badge { background-color: #e8f5e9; color: #2e7d32; }
+
+.card-heavy::before { background-color: #007bff; } /* สีน้ำเงิน */
+.card-heavy .badge { background-color: #e3f2fd; color: #1565c0; }
+
+.card-explosive::before { background-color: #dc3545; } /* สีแดง */
+.card-explosive .badge { background-color: #ffebee; color: #c62828; }
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.price {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+  margin-top: 10px;
+}
+
+.stock {
+  font-size: 0.9rem;
+  color: #666;
+}

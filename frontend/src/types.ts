@@ -1,3 +1,4 @@
+// src/types.ts
 
 export interface UserProfile {
   id: string;
@@ -10,19 +11,7 @@ export interface LoginResponse {
   user: UserProfile;
 }
 
-// [เพิ่ม] Interface สำหรับอาวุธ
-export interface Weapon {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  stock: number;
-  category: 'light' | 'heavy' | 'explosive';
-  required_license_level: number;
-  updated_at?: string;
-}
-
-// [เพิ่ม] Interface สำหรับฟอร์มสร้าง/แก้ไข
+// Payload สำหรับตอนสร้าง/แก้ไข (รับค่าจาก Form)
 export interface WeaponPayload {
   name: string;
   description: string;
@@ -30,4 +19,23 @@ export interface WeaponPayload {
   stock: number;
   category: string;
   required_license_level: number;
+}
+
+export const WeaponCategory = {
+  LIGHT: 'light',
+  HEAVY: 'heavy',
+  EXPLOSIVE: 'explosive',
+} as const;
+
+export type WeaponCategory = typeof WeaponCategory[keyof typeof WeaponCategory];
+
+export interface Weapon {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  category: WeaponCategory; // ตรงนี้ยังใช้ได้เหมือนเดิมเป๊ะ
+  required_license_level: number;
+  updated_at?: string;
 }
