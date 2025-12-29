@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm'; // 1. import
 import { OrdersService } from './orders.service';
 import { OrdersController } from './orders.controller';
+import { Order } from './entities/order.entity'; // 2. import Entity
 
 @Module({
+  imports: [TypeOrmModule.forFeature([Order])], // 3. ใส่บรรทัดนี้
   controllers: [OrdersController],
   providers: [OrdersService],
+  exports: [OrdersService], // (Optional) export เผื่อไว้
 })
 export class OrdersModule {}
