@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { WeaponsService } from './weapons.service';
 import { CreateWeaponDto } from './dto/create-weapon.dto';
 import { UpdateWeaponDto } from './dto/update-weapon.dto';
@@ -7,14 +7,17 @@ import { AuthGuard } from '@nestjs/passport'; // หรือใช้ JwtAuthGu
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { UserRole } from '../users/entities/user.entity';
+import { GetWeaponsFilterDto } from './dto/get-weapons-filter.dto';
 
 @Controller('weapons')
 export class WeaponsController {
   constructor(private readonly weaponsService: WeaponsService) {}
+  
+  
 
   @Get()
-  findAll() {
-    return this.weaponsService.findAll();
+  findAll(@Query() filterDto: GetWeaponsFilterDto) {
+    return this.weaponsService.findAll(filterDto);
   }
 
   @Get(':id')
