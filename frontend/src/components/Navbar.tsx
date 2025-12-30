@@ -54,6 +54,11 @@ const Navbar = () => {
           )}
         </Link>
 
+        <Link to="/orders" style={{ textDecoration: 'none', color: '#ccc', display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <span style={{ fontSize: '1.2rem' }}>📜</span>
+          <span>ประวัติ</span>
+        </Link>
+        
         <div style={{ borderLeft: '1px solid #555', height: '25px', margin: '0 5px' }}></div>
 
         <span>สวัสดี, <strong>{auth.user?.username}</strong></span>

@@ -42,3 +42,26 @@ export interface Weapon {
 export interface CartItem extends Weapon {
   quantity: number;
 }
+
+export const OrderStatus = {
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+} as const;
+
+export type OrderStatus = typeof OrderStatus[keyof typeof OrderStatus];
+
+export interface OrderItem {
+  id: string;
+  quantity: number;
+  price_at_purchase: number;
+  weapon: Weapon; // หรือ Weapon ในแบบย่อ
+}
+
+export interface Order {
+  id: string;
+  total_price: number;
+  status: OrderStatus;
+  created_at: string;
+  order_items: OrderItem[];
+}

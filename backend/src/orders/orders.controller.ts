@@ -15,6 +15,12 @@ export class OrdersController {
     return this.ordersService.create(createOrderDto, req.user);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('my-orders')
+  findMyOrders(@Request() req) {
+    return this.ordersService.findMyOrders(req.user);
+  }
+
   @Get()
   findAll() {
     return this.ordersService.findAll();

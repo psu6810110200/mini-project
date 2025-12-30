@@ -88,12 +88,25 @@ export class OrdersService {
     }
   }
 
-  findAll() {
-    return `This action returns all orders`;
+  async findMyOrders(user: any) {
+    const userId = user.id || user.userId; // รับ userId จาก JWT
+
+    return this.dataSource.getRepository(Order).find({
+      where: { user: { id: userId } }, // Filter เฉพาะของ User คนนี้
+      relations: ['order_items', 'order_items.weapon'], // Join ตารางลูก (รายการสินค้า + รายละเอียดปืน)
+      order: { created_at: 'DESC' }, // เรียงจากใหม่ไปเก่า
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
+  async findAll() {
+    return this.dataSource.getRepository(Order).find({
+      relations: ['user', 'order_items', 'order_items.weapon'], // เห็น User คนสั่ง + รายการของ
+      order: { created_at: 'DESC' },
+    });
+  }
+
+  async findOne(id: number) { 
+    return `This action returns a #${id} order`; 
   }
 
   update(id: number, updateOrderDto: any) {

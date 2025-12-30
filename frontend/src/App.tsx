@@ -14,6 +14,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import { CartProvider } from './context/CartContext'; // ✅ 1. Import มา
 import CartPage from './pages/CartPage'; // ✅ อย่าลืม import
 import OrderSuccessPage from './pages/OrderSuccessPage';
+import OrderHistoryPage from './pages/OrderHistoryPage';
 
 // สร้าง Component เพื่อป้องกันหน้า Home (ถ้ายังไม่ Login ให้เด้งไป Login)
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -78,6 +79,13 @@ function App() {
           } />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/success" element={<OrderSuccessPage />} />
+
+          <Route path="/orders" element={
+            <ProtectedRoute>
+              <OrderHistoryPage />
+            </ProtectedRoute>
+          } />
+          
         </Routes>
         <ToastContainer position="top-right" autoClose={3000} />
       </CartProvider>
