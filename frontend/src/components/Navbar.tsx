@@ -23,7 +23,7 @@ const Navbar = () => {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
         <Link to="/" style={{ color: '#ffc107', textDecoration: 'none', fontSize: '1.5rem', fontWeight: 'bold' }}>
-          Gun Shop
+          WAR WEAPON SHOP
         </Link>
         
         {auth.user?.role === 'admin' && (

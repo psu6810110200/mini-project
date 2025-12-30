@@ -26,36 +26,140 @@ const RegisterPage = () => {
     }
   };
 
-  return (
-    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '50px' }}>
-      <div className="card" style={{ width: '400px' }}>
-        <h2 style={{ textAlign: 'center' }}>สมัครสมาชิกใหม่</h2>
+return (
+    <div style={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      minHeight: '100vh',   
+    }}>
+      
+      {/* Card: ธีมดำ-เหลือง มุมมน เงาฟุ้ง */}
+      <div className="card" style={{ 
+        width: '100%',
+        maxWidth: '420px', 
+        padding: '40px', 
+        backgroundColor: '#1a1a1a', // พื้นหลัง Card สีดำ
+        color: '#ffffff',           // ตัวหนังสือสีขาว
+        borderRadius: '20px',       // มุมมน
+        boxShadow: '0 20px 50px rgba(0,0,0,0.5)', // เงาฟุ้งๆ นุ่มๆ
+        border: '1px solid #333'
+      }}>
+        
+        <h2 style={{ 
+          textAlign: 'center', 
+          marginBottom: '30px', 
+          color: '#ffc107', // หัวข้อสีเหลือง
+          fontWeight: 'bold'
+        }}>
+          สมัครสมาชิกใหม่
+        </h2>
+
         <form onSubmit={handleSubmit}>
-          <div>
-            <label>Username</label>
-            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
-          </div>
-          <div>
-            <label>Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          </div>
           
-          {/* 3. เพิ่ม Input สำหรับ License Number */}
-          <div style={{ marginTop: '10px' }}>
-            <label>License Number (เลขที่ใบอนุญาต)</label>
+          {/* --- Username Input --- */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            backgroundColor: '#f0f0f0', 
+            borderRadius: '50px',       
+            padding: '5px 8px',
+            marginBottom: '20px'
+          }}>
+            <div style={{
+              width: '40px', height: '40px', backgroundColor: '#fff', borderRadius: '50%',
+              display: 'flex', justifyContent: 'center', alignItems: 'center', marginRight: '10px',
+              fontSize: '20px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+            }}>
+              👤
+            </div>
             <input 
               type="text" 
-              value={licenseNumber} 
-              onChange={(e) => setLicenseNumber(e.target.value)} 
-              placeholder="เช่น A-123456 (ถ้ามี)"
-              style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+              placeholder="ชื่อผู้ใช้"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required 
+              style={{ 
+                flex: 1, border: 'none', outline: 'none', backgroundColor: 'transparent', fontSize: '16px', color: '#333'
+              }}
             />
           </div>
 
-          <button type="submit" style={{ marginTop: '20px', backgroundColor: '#28a745' }}>REGISTER</button>
+          {/* --- Password Input --- */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            backgroundColor: '#f0f0f0', 
+            borderRadius: '50px',
+            padding: '5px 8px',
+            marginBottom: '20px'
+          }}>
+            <div style={{
+              width: '40px', height: '40px', backgroundColor: '#fff', borderRadius: '50%',
+              display: 'flex', justifyContent: 'center', alignItems: 'center', marginRight: '10px',
+              fontSize: '20px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+            }}>
+              🔑
+            </div>
+            <input 
+              type="password" 
+              placeholder="รหัสผ่าน..."
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required 
+              style={{ 
+                flex: 1, border: 'none', outline: 'none', backgroundColor: 'transparent', fontSize: '16px', color: '#333'
+              }}
+            />
+          </div>
+
+          {/* --- License Number Input (Added) --- */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            backgroundColor: '#f0f0f0', 
+            borderRadius: '50px',
+            padding: '5px 8px',
+            marginBottom: '25px' // เว้นระยะห่างก่อนปุ่ม Register
+          }}>
+            <div style={{
+              width: '40px', height: '40px', backgroundColor: '#fff', borderRadius: '50%',
+              display: 'flex', justifyContent: 'center', alignItems: 'center', marginRight: '10px',
+              fontSize: '20px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+            }}>
+              📜
+            </div>
+            <input 
+              type="text" 
+              placeholder="เลขที่ใบอนุญาต (1-5)"
+              value={licenseNumber} 
+              onChange={(e) => setLicenseNumber(e.target.value)}
+              style={{ 
+                flex: 1, border: 'none', outline: 'none', backgroundColor: 'transparent', fontSize: '16px', color: '#333'
+              }}
+            />
+          </div>
+
+          {/* --- Register Button --- */}
+          <button type="submit" style={{ 
+            width: '100%', 
+            padding: '14px', 
+            cursor: 'pointer', 
+            backgroundColor: '#ffc107', // ปุ่มสีเหลืองตามธีม
+            color: '#000',              
+            border: 'none', 
+            borderRadius: '50px',       
+            fontSize: '18px',
+            fontWeight: 'bold',
+            boxShadow: '0 5px 15px rgba(255, 193, 7, 0.3)',
+            transition: 'transform 0.2s'
+          }}>
+            REGISTER
+          </button>
         </form>
-        <p style={{ textAlign: 'center', marginTop: '15px' }}>
-          มีบัญชีอยู่แล้ว? <Link to="/login">เข้าสู่ระบบ</Link>
+
+        <p style={{ textAlign: 'center', marginTop: '25px', color: '#aaa' }}>
+          มีบัญชีอยู่แล้ว? <Link to="/login" style={{ color: '#ffc107', fontWeight: 'bold', textDecoration: 'none' }}>เข้าสู่ระบบ</Link>
         </p>
       </div>
     </div>

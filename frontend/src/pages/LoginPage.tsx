@@ -37,52 +37,161 @@ const LoginPage = () => {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '50px' }}>
-      {/* ปรับ Style Card นิดหน่อยให้สวยขึ้น */}
-      <div className="card" style={{ width: '400px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>เข้าสู่ระบบ (Weapon Shop)</h2>
+    <div style={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      minHeight: '100vh',   // ให้ Card ลอยกลางจอในแนวตั้งด้วย
+      
+    }}>
+      
+      {/* Card: ธีมดำ-เหลือง มุมมน เงาฟุ้ง */}
+      <div className="card" style={{ 
+        width: '100%',
+        maxWidth: '420px', 
+        padding: '40px', 
+        backgroundColor: '#1a1a1a', // พื้นหลัง Card สีดำ
+        color: '#ffffff',           // ตัวหนังสือสีขาว
+        borderRadius: '20px',       // มุมมน
+        boxShadow: '0 20px 50px rgba(0,0,0,0.5)', // เงาฟุ้งๆ นุ่มๆ
+        border: '1px solid #333'
+      }}>
+        
+        <h2 style={{ 
+          textAlign: 'center', 
+          marginBottom: '30px', 
+          color: '#ffc107', // หัวข้อสีเหลือง
+          fontWeight: 'bold'
+        }}>
+          WAR WEAPON SHOP
+        </h2>
+
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px' }}>Username</label>
+          
+          {/* --- Username Input --- */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            backgroundColor: '#f0f0f0', // พื้นหลัง input สีเทาอ่อน
+            borderRadius: '50px',       // ทรงแคปซูล
+            padding: '5px 8px',
+            marginBottom: '20px'
+          }}>
+            {/* Icon Circle */}
+            <div style={{
+              width: '40px',
+              height: '40px',
+              backgroundColor: '#fff',
+              borderRadius: '50%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: '10px',
+              fontSize: '20px',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+            }}>
+              👤
+            </div>
+            {/* Input Field */}
             <input 
               type="text" 
+              placeholder="ชื่อผู้ใช้"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required 
-              style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-            />
-          </div>
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px' }}>Password</label>
-            <input 
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required 
-              style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+              style={{ 
+                flex: 1, 
+                border: 'none', 
+                outline: 'none', 
+                backgroundColor: 'transparent', 
+                fontSize: '16px',
+                color: '#333'
+              }}
             />
           </div>
 
-          {/* 3. [เพิ่ม] Checkbox Remember Me UI */}
-          <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center' }}>
+          {/* --- Password Input --- */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            backgroundColor: '#f0f0f0', 
+            borderRadius: '50px',
+            padding: '5px 8px',
+            marginBottom: '20px'
+          }}>
+            {/* Icon Circle */}
+            <div style={{
+              width: '40px',
+              height: '40px',
+              backgroundColor: '#fff',
+              borderRadius: '50%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: '10px',
+              fontSize: '20px',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+            }}>
+              🔑
+            </div>
+            {/* Input Field */}
+            <input 
+              type="password" 
+              placeholder="รหัสผ่าน"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required 
+              style={{ 
+                flex: 1, 
+                border: 'none', 
+                outline: 'none', 
+                backgroundColor: 'transparent', 
+                fontSize: '16px',
+                color: '#333'
+              }}
+            />
+          </div>
+
+          {/* --- Checkbox Remember Me --- */}
+          <div style={{ marginBottom: '25px', display: 'flex', alignItems: 'center', paddingLeft: '10px' }}>
             <input 
               type="checkbox" 
               id="rememberMe"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              style={{ marginRight: '8px', cursor: 'pointer', width: '16px', height: '16px' }}
+              style={{ 
+                marginRight: '10px', 
+                cursor: 'pointer', 
+                width: '18px', 
+                height: '18px',
+                accentColor: '#ffc107' // สี Checkbox เป็นสีเหลือง
+              }}
             />
-            <label htmlFor="rememberMe" style={{ cursor: 'pointer', userSelect: 'none' }}>
-              (Remember Me)
+            <label htmlFor="rememberMe" style={{ cursor: 'pointer', userSelect: 'none', color: '#ccc', fontSize: '0.9rem' }}>
+              จดจำฉันไว้ในระบบ (Remember Me)
             </label>
           </div>
 
-          <button type="submit" style={{ width: '100%', padding: '10px', marginTop: '10px', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', fontSize: '16px' }}>
+          {/* --- Login Button --- */}
+          <button type="submit" style={{ 
+            width: '100%', 
+            padding: '14px', 
+            cursor: 'pointer', 
+            backgroundColor: '#ffc107', // ปุ่มสีเหลือง
+            color: '#000',              // ตัวหนังสือสีดำ
+            border: 'none', 
+            borderRadius: '50px',       // ปุ่มกลมมน
+            fontSize: '18px',
+            fontWeight: 'bold',
+            boxShadow: '0 5px 15px rgba(255, 193, 7, 0.3)', // เงาสีเหลืองเรืองแสง
+            transition: 'transform 0.2s'
+          }}>
             LOGIN
           </button>
         </form>
-        <p style={{ textAlign: 'center', marginTop: '20px' }}>
-          ยังไม่มีบัญชี? <Link to="/register" style={{ color: '#007bff', textDecoration: 'none' }}>สมัครสมาชิกที่นี่</Link>
+
+        <p style={{ textAlign: 'center', marginTop: '25px', color: '#aaa' }}>
+          ยังไม่มีบัญชี? <Link to="/register" style={{ color: '#ffc107', fontWeight: 'bold', textDecoration: 'none' }}>สมัครสมาชิกที่นี่</Link>
         </p>
       </div>
     </div>
