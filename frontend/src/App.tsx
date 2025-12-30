@@ -10,6 +10,7 @@ import React from 'react';
 import Navbar from './components/Navbar'; // [เพิ่ม] import Navbar
 import AdminDashboard from './pages/AdminDashboard';
 import HomePage from './pages/HomePage';
+import ProductDetailPage from './pages/ProductDetailPage';
 
 // สร้าง Component เพื่อป้องกันหน้า Home (ถ้ายังไม่ Login ให้เด้งไป Login)
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -40,29 +41,36 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <AuthProvider>
-      {/* [เพิ่ม] ใส่ Navbar ตรงนี้ เพื่อให้แสดงทุกหน้า และเข้าถึง AuthContext ได้ */}
-    <Navbar/>
+      <Navbar />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         
-        {/* หน้า Home ต้อง Login ก่อนถึงจะเข้าได้ */}
+        {/* หน้า Home */}
         <Route path="/" element={
           <ProtectedRoute>
             <HomePage />
           </ProtectedRoute>
         } />
+
+        {/* ✅ เพิ่ม Route สำหรับหน้า Detail ตรงนี้ */}
+        <Route path="/product/:id" element={
+          <ProtectedRoute>
+            <ProductDetailPage />
+          </ProtectedRoute>
+        } />
+
+        {/* หน้า Admin */}
         <Route path="/admin" element={
           <AdminRoute>
             <AdminDashboard />
           </AdminRoute>
         } />
       </Routes>
-      
-      {/* ตัวแสดงผลแจ้งเตือน */}
       <ToastContainer position="top-right" autoClose={3000} />
     </AuthProvider>
   );
 }
+
 
 export default App;
