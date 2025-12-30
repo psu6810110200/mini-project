@@ -34,4 +34,7 @@ export class Weapon {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @Column({ nullable: true }) 
+  image: string;
 }

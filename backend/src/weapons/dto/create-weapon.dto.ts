@@ -7,4 +7,5 @@ export class CreateWeaponDto {
   stock: number;
   category: WeaponCategory;
   required_license_level: number;
+  image?: string;
 }

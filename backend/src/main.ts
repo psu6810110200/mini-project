@@ -1,13 +1,19 @@
-// backend/src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { NestExpressApplication } from '@nestjs/platform-express'; // เพิ่ม
+import { join } from 'path'; // เพิ่ม
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // เปลี่ยนบรรทัดนี้ให้ระบุ Type <NestExpressApplication>
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   
-  // 1. เพิ่มบรรทัดนี้ เพื่ออนุญาตให้ Frontend (Vite) เรียกใช้งานได้
-  app.enableCors(); 
+  app.enableCors();
 
-  await app.listen(3000);
+  // เพิ่มส่วนนี้: บอกให้ Server เปิดโฟลเดอร์ uploads ให้คนนอกเข้าถึงได้
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/',
+  });
+
+  await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
