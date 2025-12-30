@@ -7,13 +7,18 @@ import { toast } from 'react-toastify';
 const RegisterPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [licenseNumber, setLicenseNumber] = useState(''); // 1. เพิ่ม State
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // ยิง API Register
-      await api.post('/auth/register', { username, password });
+      // 2. ส่ง license_number ไปที่ Backend
+      await api.post('/auth/register', { 
+        username, 
+        password,
+        license_number: licenseNumber 
+      });
       toast.success('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ');
       navigate('/login'); // เด้งไปหน้า Login
     } catch (error) {
@@ -34,6 +39,19 @@ const RegisterPage = () => {
             <label>Password</label>
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
+          
+          {/* 3. เพิ่ม Input สำหรับ License Number */}
+          <div style={{ marginTop: '10px' }}>
+            <label>License Number (เลขที่ใบอนุญาต)</label>
+            <input 
+              type="text" 
+              value={licenseNumber} 
+              onChange={(e) => setLicenseNumber(e.target.value)} 
+              placeholder="เช่น A-123456 (ถ้ามี)"
+              style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+            />
+          </div>
+
           <button type="submit" style={{ marginTop: '20px', backgroundColor: '#28a745' }}>REGISTER</button>
         </form>
         <p style={{ textAlign: 'center', marginTop: '15px' }}>

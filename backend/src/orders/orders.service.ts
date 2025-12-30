@@ -16,13 +16,27 @@ export class OrdersService {
     await queryRunner.startTransaction();
 
     try {
+      // 1. ดึงข้อมูล User ล่าสุดจาก Database (เพื่อให้ได้ license_number ที่เป็นปัจจุบันที่สุด)
+      const customer = await queryRunner.manager.findOne(User, { 
+        where: { id: user.id || user.userId } 
+      });
+
+      if (!customer) {
+        throw new NotFoundException('ไม่พบข้อมูลผู้ใช้งาน');
+      }
+
+      // 2. แปลง License Number เป็นตัวเลข (Level)
+      // ถ้าเป็น null, ว่าง, หรือไม่ใช่ตัวเลข จะให้ค่าเป็น 0
+      const customerLevel = customer.license_number && !isNaN(Number(customer.license_number))
+        ? Number(customer.license_number)
+        : 0;
+
       const { items } = createOrderDto;
       let calculatedTotalPrice = 0;
       const newOrderItems: OrderItem[] = [];
 
       for (const itemDto of items) {
-        // 1. ดึงข้อมูลปืน พร้อม Lock แถว (ป้องกันการแย่งตัดของพร้อมกัน)
-        // ใช้ pessimistic_write เพื่อให้ Transaction อื่นรอจนกว่าเราจะจบงาน
+        // 3. ดึงข้อมูลอาวุธ (Lock แถวเพื่อป้องกัน Race Condition)
         const weapon = await queryRunner.manager.findOne(Weapon, { 
           where: { id: itemDto.weaponId },
           lock: { mode: 'pessimistic_write' } 
@@ -32,20 +46,27 @@ export class OrdersService {
           throw new NotFoundException(`ไม่พบอาวุธ ID: ${itemDto.weaponId}`);
         }
 
+        // --- เพิ่มการตรวจสอบ License Level ตรงนี้ ---
+        if (weapon.required_license_level > customerLevel) {
+          throw new BadRequestException(
+            `ใบอนุญาตของคุณ (Level ${customerLevel}) ไม่เพียงพอสำหรับซื้อ "${weapon.name}" (ต้องการ Level ${weapon.required_license_level})`
+          );
+        }
+        // -----------------------------------------
+
         if (weapon.stock < itemDto.quantity) {
           throw new BadRequestException(`สินค้า ${weapon.name} คงเหลือไม่พอ (เหลือ ${weapon.stock})`);
         }
 
-        // 2. คำนวณสต็อกใหม่และอัปเดตทันที
+        // 4. ตัดสต็อก
         const newStock = weapon.stock - itemDto.quantity;
         await queryRunner.manager.update(Weapon, weapon.id, { stock: newStock });
 
         calculatedTotalPrice += Number(weapon.price) * itemDto.quantity;
 
-        // 3. เตรียม OrderItem
+        // 5. เตรียม OrderItem
         const orderItem = new OrderItem();
         
-        // เทคนิค: สร้าง Weapon ปลอมที่มีแค่ ID เพื่อผูก Relation โดยไม่ต้องโหลด Entity เต็มมา Save
         const weaponRef = new Weapon();
         weaponRef.id = weapon.id;
         orderItem.weapon = weaponRef;
@@ -56,19 +77,18 @@ export class OrdersService {
         newOrderItems.push(orderItem);
       }
 
-      // 4. สร้าง Order หลัก
+      // 6. สร้าง Order หลัก
       const order = new Order();
       
-      // เทคนิค: สร้าง User ปลอมเพื่อผูก Relation
       const userRef = new User();
-      userRef.id = user.id || user.userId; // รองรับทั้ง user entity หรือ jwt payload
+      userRef.id = customer.id;
       order.user = userRef;
       
       order.total_price = calculatedTotalPrice;
       order.status = OrderStatus.PENDING;
-      order.order_items = newOrderItems; // Cascade จะช่วย Save Items ให้เอง
+      order.order_items = newOrderItems;
 
-      // 5. บันทึกและ Commit
+      // 7. บันทึก
       const savedOrder = await queryRunner.manager.save(Order, order);
 
       await queryRunner.commitTransaction();
@@ -80,7 +100,6 @@ export class OrdersService {
       };
 
     } catch (err) {
-      // ถ้ามี Error คืนค่าสต็อกทุกอย่างกลับสภาพเดิม
       await queryRunner.rollbackTransaction();
       throw err;
     } finally {
@@ -88,19 +107,20 @@ export class OrdersService {
     }
   }
 
-  async findMyOrders(user: any) {
-    const userId = user.id || user.userId; // รับ userId จาก JWT
+  // --- Methods อื่นๆ คงเดิม ---
 
+  async findMyOrders(user: any) {
+    const userId = user.id || user.userId;
     return this.dataSource.getRepository(Order).find({
-      where: { user: { id: userId } }, // Filter เฉพาะของ User คนนี้
-      relations: ['order_items', 'order_items.weapon'], // Join ตารางลูก (รายการสินค้า + รายละเอียดปืน)
-      order: { created_at: 'DESC' }, // เรียงจากใหม่ไปเก่า
+      where: { user: { id: userId } },
+      relations: ['order_items', 'order_items.weapon'],
+      order: { created_at: 'DESC' },
     });
   }
 
   async findAll() {
     return this.dataSource.getRepository(Order).find({
-      relations: ['user', 'order_items', 'order_items.weapon'], // เห็น User คนสั่ง + รายการของ
+      relations: ['user', 'order_items', 'order_items.weapon'],
       order: { created_at: 'DESC' },
     });
   }

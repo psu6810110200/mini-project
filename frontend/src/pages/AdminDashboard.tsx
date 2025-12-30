@@ -6,11 +6,12 @@ import type { Weapon, WeaponPayload, Order } from '../types';
 import { OrderStatus } from '../types';
 import { toast } from 'react-toastify';
 
-// ✅ Interface พิเศษสำหรับหน้านี้
+// ✅ Interface พิเศษสำหรับหน้านี้ (เพิ่ม license_number)
 interface AdminOrder extends Order {
   user?: {
     username: string;
     email?: string;
+    license_number?: string; // <-- เพิ่ม field นี้
   };
 }
 
@@ -24,7 +25,6 @@ const AdminDashboard = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState<string | null>(null);
   
-  // 1. เพิ่ม image เข้าไปใน State เริ่มต้น
   const [formData, setFormData] = useState<WeaponPayload>({
     name: '',
     description: '',
@@ -32,7 +32,7 @@ const AdminDashboard = () => {
     stock: 0,
     category: 'light',
     required_license_level: 1,
-    image: '', // <--- เพิ่มตรงนี้
+    image: '', 
   });
 
   // --- State ส่วน Orders ---
@@ -113,7 +113,6 @@ const AdminDashboard = () => {
   const startEdit = (weapon: Weapon) => {
     setIsEditing(true);
     setCurrentId(weapon.id);
-    // 2. ดึงข้อมูลรูปภาพมาใส่ใน Form ตอนกดแก้ไข
     setFormData({
       name: weapon.name,
       description: weapon.description,
@@ -121,7 +120,7 @@ const AdminDashboard = () => {
       stock: weapon.stock,
       category: weapon.category,
       required_license_level: weapon.required_license_level,
-      image: weapon.image || '', // <--- เพิ่มตรงนี้
+      image: weapon.image || '', 
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -129,7 +128,6 @@ const AdminDashboard = () => {
   const resetForm = () => {
     setIsEditing(false);
     setCurrentId(null);
-    // 3. Reset ค่ารูปภาพเมื่อกดปุ่มยกเลิกหรือบันทึกเสร็จ
     setFormData({
       name: '',
       description: '',
@@ -137,7 +135,7 @@ const AdminDashboard = () => {
       stock: 0,
       category: 'light',
       required_license_level: 1,
-      image: '', // <--- เพิ่มตรงนี้
+      image: '', 
     });
   };
 
@@ -188,7 +186,7 @@ const AdminDashboard = () => {
                 <input type="text" name="name" value={formData.name} onChange={handleChange} required className="input-field" />
               </div>
 
-              {/* 4. เพิ่มช่องกรอก URL รูปภาพ */}
+              {/* URL รูปภาพสินค้า */}
               <div style={{ gridColumn: '1 / -1' }}>
                 <label>URL รูปภาพสินค้า:</label>
                 <input 
@@ -251,7 +249,7 @@ const AdminDashboard = () => {
               <table border={1} cellPadding={10} style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#eee' }}>
-                    <th style={{ width: '80px' }}>รูปภาพ</th> {/* เพิ่ม Header รูปภาพ */}
+                    <th style={{ width: '80px' }}>รูปภาพ</th>
                     <th>ชื่อ</th>
                     <th>ราคา</th>
                     <th>Stock</th>
@@ -263,14 +261,13 @@ const AdminDashboard = () => {
                 <tbody>
                   {weapons.map((w) => (
                     <tr key={w.id}>
-                      {/* 5. แสดงรูปภาพ thumbnail ในตาราง */}
                       <td style={{ textAlign: 'center' }}>
                         {w.image ? (
                            <img 
                              src={w.image} 
                              alt="preview" 
                              style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} 
-                             onError={(e) => (e.target as HTMLImageElement).style.display = 'none'} // ซ่อนถ้ารูปเสีย
+                             onError={(e) => (e.target as HTMLImageElement).style.display = 'none'} 
                            />
                         ) : (
                            <span style={{ fontSize: '10px', color: '#999' }}>ไม่มีรูป</span>
@@ -314,6 +311,7 @@ const AdminDashboard = () => {
                 <tr style={{ backgroundColor: '#eee' }}>
                   <th>Order ID</th>
                   <th>ลูกค้า</th>
+                  <th>License</th> {/* <-- เพิ่มหัวตารางตรงนี้ */}
                   <th>รายการสินค้า</th>
                   <th>ยอดรวม</th>
                   <th>สถานะ</th>
@@ -326,6 +324,12 @@ const AdminDashboard = () => {
                   <tr key={order.id}>
                     <td><small>{order.id.substring(0, 8)}...</small></td>
                     <td>{order.user?.username || 'Unknown'}</td>
+                    
+                    {/* แสดง License Number ตรงนี้ */}
+                    <td style={{ color: order.user?.license_number ? 'blue' : '#ccc', textAlign: 'center' }}>
+                      {order.user?.license_number ? order.user.license_number : '-'}
+                    </td>
+
                     <td>
                       <ul style={{ paddingLeft: '20px', margin: 0 }}>
                         {order.order_items?.map((item) => (
