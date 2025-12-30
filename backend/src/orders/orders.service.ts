@@ -105,12 +105,19 @@ export class OrdersService {
     });
   }
 
-  async findOne(id: number) { 
-    return `This action returns a #${id} order`; 
+  async findOne(id: string) {
+    const order = await this.dataSource.getRepository(Order).findOne({
+      where: { id },
+      relations: ['user', 'order_items', 'order_items.weapon'],
+    });
+    if (!order) throw new NotFoundException('Order not found');
+    return order;
   }
 
-  update(id: number, updateOrderDto: any) {
-    return `This action updates a #${id} order`;
+  async updateStatus(id: string, status: OrderStatus) {
+    const order = await this.findOne(id);
+    order.status = status;
+    return this.dataSource.getRepository(Order).save(order);
   }
 
   remove(id: number) {
