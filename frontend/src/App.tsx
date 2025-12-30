@@ -1,5 +1,5 @@
 // src/App.tsx
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'; // [แก้ไข] เพิ่ม useLocation
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import { ToastContainer } from 'react-toastify';
@@ -7,12 +7,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { useContext } from 'react';
 import React from 'react';
-import Navbar from './components/Navbar'; // [เพิ่ม] import Navbar
+import Navbar from './components/Navbar';
 import AdminDashboard from './pages/AdminDashboard';
 import HomePage from './pages/HomePage';
 import ProductDetailPage from './pages/ProductDetailPage';
-import { CartProvider } from './context/CartContext'; // ✅ 1. Import มา
-import CartPage from './pages/CartPage'; // ✅ อย่าลืม import
+import { CartProvider } from './context/CartContext';
+import CartPage from './pages/CartPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
 
@@ -25,7 +25,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return children as React.ReactElement;
 };
 
-// [เพิ่ม] เช็คว่าเป็น Admin หรือไม่
+// เช็คว่าเป็น Admin หรือไม่
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const auth = useContext(AuthContext);
   
@@ -40,13 +40,19 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   return children as React.ReactElement;
 };
 
-
-
 function App() {
+  const location = useLocation(); // [แก้ไข] รับค่า Path ปัจจุบัน
+
+  // [แก้ไข] กำหนดรายการหน้าที่ไม่ต้องการให้แสดง Navbar
+  const hideNavbarRoutes = ['/login', '/register']; 
+  const shouldShowNavbar = !hideNavbarRoutes.includes(location.pathname);
+
   return (
     <AuthProvider>
       <CartProvider> 
-        <Navbar />
+        {/* [แก้ไข] แสดง Navbar เฉพาะหน้าที่ไม่อยู่ในเงื่อนไขซ่อน */}
+        {shouldShowNavbar && <Navbar />}
+        
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -58,7 +64,7 @@ function App() {
             </ProtectedRoute>
           } />
 
-          {/* ✅ เพิ่ม Route สำหรับหน้า Detail ตรงนี้ */}
+          {/* Route สำหรับหน้า Detail */}
           <Route path="/product/:id" element={
             <ProtectedRoute>
               <ProductDetailPage />
@@ -77,7 +83,9 @@ function App() {
               <CartPage />
             </ProtectedRoute>
           } />
-          <Route path="/cart" element={<CartPage />} />
+          
+          {/* ลบ Route /cart อันที่ซ้ำออกแล้ว */}
+          
           <Route path="/success" element={<OrderSuccessPage />} />
 
           <Route path="/orders" element={
@@ -92,6 +100,5 @@ function App() {
     </AuthProvider>
   );
 }
-
 
 export default App;
