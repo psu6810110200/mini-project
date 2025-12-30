@@ -1,12 +1,12 @@
 // frontend/src/pages/AdminDashboard.tsx
 import { useEffect, useState } from 'react';
 import { getWeapons, createWeapon, updateWeapon, deleteWeapon } from '../api/weaponApi';
-import { getAllOrders, updateOrderStatus } from '../api/orderApi'; // ✅ เพิ่ม import
+import { getAllOrders, updateOrderStatus } from '../api/orderApi';
 import type { Weapon, WeaponPayload, Order } from '../types';
-import { OrderStatus } from '../types'; // ✅ import Enum
+import { OrderStatus } from '../types';
 import { toast } from 'react-toastify';
 
-// ✅ Interface พิเศษสำหรับหน้านี้เพื่อให้รองรับข้อมูล User ที่ Backend ส่งมาเพิ่ม
+// ✅ Interface พิเศษสำหรับหน้านี้
 interface AdminOrder extends Order {
   user?: {
     username: string;
@@ -15,7 +15,7 @@ interface AdminOrder extends Order {
 }
 
 const AdminDashboard = () => {
-  // ✅ State สำหรับสลับ Tab ('weapons' | 'orders')
+  // ✅ State สำหรับสลับ Tab
   const [activeTab, setActiveTab] = useState<'weapons' | 'orders'>('weapons');
 
   // --- State ส่วน Weapons ---
@@ -23,6 +23,8 @@ const AdminDashboard = () => {
   const [loadingWeapons, setLoadingWeapons] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState<string | null>(null);
+  
+  // 1. เพิ่ม image เข้าไปใน State เริ่มต้น
   const [formData, setFormData] = useState<WeaponPayload>({
     name: '',
     description: '',
@@ -30,6 +32,7 @@ const AdminDashboard = () => {
     stock: 0,
     category: 'light',
     required_license_level: 1,
+    image: '', // <--- เพิ่มตรงนี้
   });
 
   // --- State ส่วน Orders ---
@@ -62,7 +65,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // ✅ Effect โหลดข้อมูลตาม Tab ที่เลือก
   useEffect(() => {
     if (activeTab === 'weapons') {
       fetchWeapons();
@@ -111,6 +113,7 @@ const AdminDashboard = () => {
   const startEdit = (weapon: Weapon) => {
     setIsEditing(true);
     setCurrentId(weapon.id);
+    // 2. ดึงข้อมูลรูปภาพมาใส่ใน Form ตอนกดแก้ไข
     setFormData({
       name: weapon.name,
       description: weapon.description,
@@ -118,6 +121,7 @@ const AdminDashboard = () => {
       stock: weapon.stock,
       category: weapon.category,
       required_license_level: weapon.required_license_level,
+      image: weapon.image || '', // <--- เพิ่มตรงนี้
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -125,6 +129,7 @@ const AdminDashboard = () => {
   const resetForm = () => {
     setIsEditing(false);
     setCurrentId(null);
+    // 3. Reset ค่ารูปภาพเมื่อกดปุ่มยกเลิกหรือบันทึกเสร็จ
     setFormData({
       name: '',
       description: '',
@@ -132,6 +137,7 @@ const AdminDashboard = () => {
       stock: 0,
       category: 'light',
       required_license_level: 1,
+      image: '', // <--- เพิ่มตรงนี้
     });
   };
 
@@ -141,7 +147,7 @@ const AdminDashboard = () => {
     try {
       await updateOrderStatus(id, newStatus);
       toast.success(`อัปเดตสถานะเป็น ${newStatus} แล้ว`);
-      fetchOrders(); // โหลดข้อมูลใหม่
+      fetchOrders();
     } catch (error) {
       toast.error('อัปเดตสถานะล้มเหลว');
     }
@@ -175,14 +181,33 @@ const AdminDashboard = () => {
           <div className="card" style={{ padding: '20px', marginBottom: '30px', backgroundColor: '#f9f9f9', border: '1px solid #ddd' }}>
             <h3>{isEditing ? 'แก้ไขอาวุธ' : 'เพิ่มอาวุธใหม่'}</h3>
             <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr' }}>
+              
+              {/* ชื่ออาวุธ */}
               <div style={{ gridColumn: '1 / -1' }}>
                 <label>ชื่ออาวุธ:</label>
                 <input type="text" name="name" value={formData.name} onChange={handleChange} required className="input-field" />
               </div>
+
+              {/* 4. เพิ่มช่องกรอก URL รูปภาพ */}
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label>URL รูปภาพสินค้า:</label>
+                <input 
+                  type="text" 
+                  name="image" 
+                  value={formData.image || ''} 
+                  onChange={handleChange} 
+                  placeholder="เช่น https://example.com/gun.jpg"
+                  className="input-field" 
+                />
+              </div>
+
+              {/* รายละเอียด */}
               <div style={{ gridColumn: '1 / -1' }}>
                 <label>รายละเอียด:</label>
                 <textarea name="description" value={formData.description} onChange={handleChange} required className="input-field" rows={3} />
               </div>
+              
+              {/* ราคา & Stock */}
               <div>
                 <label>ราคา ($):</label>
                 <input type="number" name="price" value={formData.price} onChange={handleChange} required className="input-field" />
@@ -191,6 +216,8 @@ const AdminDashboard = () => {
                 <label>จำนวนในคลัง:</label>
                 <input type="number" name="stock" value={formData.stock} onChange={handleChange} required className="input-field" />
               </div>
+              
+              {/* หมวดหมู่ & License */}
               <div>
                 <label>หมวดหมู่:</label>
                 <select name="category" value={formData.category} onChange={handleChange} className="input-field">
@@ -203,6 +230,8 @@ const AdminDashboard = () => {
                 <label>เลเวลใบอนุญาตที่ต้องใช้:</label>
                 <input type="number" name="required_license_level" value={formData.required_license_level} onChange={handleChange} required className="input-field" />
               </div>
+              
+              {/* Buttons */}
               <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
                 <button type="submit" className="btn-primary" style={{ marginRight: '10px' }}>
                   {isEditing ? 'บันทึกการแก้ไข' : 'เพิ่มอาวุธ'}
@@ -222,17 +251,31 @@ const AdminDashboard = () => {
               <table border={1} cellPadding={10} style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#eee' }}>
+                    <th style={{ width: '80px' }}>รูปภาพ</th> {/* เพิ่ม Header รูปภาพ */}
                     <th>ชื่อ</th>
                     <th>ราคา</th>
                     <th>Stock</th>
                     <th>หมวดหมู่</th>
-                    <th>License Level</th>
+                    <th>License</th>
                     <th>จัดการ</th>
                   </tr>
                 </thead>
                 <tbody>
                   {weapons.map((w) => (
                     <tr key={w.id}>
+                      {/* 5. แสดงรูปภาพ thumbnail ในตาราง */}
+                      <td style={{ textAlign: 'center' }}>
+                        {w.image ? (
+                           <img 
+                             src={w.image} 
+                             alt="preview" 
+                             style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} 
+                             onError={(e) => (e.target as HTMLImageElement).style.display = 'none'} // ซ่อนถ้ารูปเสีย
+                           />
+                        ) : (
+                           <span style={{ fontSize: '10px', color: '#999' }}>ไม่มีรูป</span>
+                        )}
+                      </td>
                       <td>
                         <strong>{w.name}</strong><br/>
                         <small style={{color: '#666'}}>{w.description.substring(0, 50)}...</small>

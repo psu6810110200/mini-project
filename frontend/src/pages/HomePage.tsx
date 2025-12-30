@@ -2,8 +2,8 @@ import React, { useEffect, useState, useContext } from 'react';
 import api from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
 import { type Weapon, WeaponCategory } from '../types';
-import './HomePage.css'; // อย่าลืม import CSS
-import { useNavigate } from 'react-router-dom'; // 1. import useNavigate
+import './HomePage.css'; 
+import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
   const auth = useContext(AuthContext);
@@ -40,22 +40,50 @@ const HomePage = () => {
   if (loading) return <div style={{ textAlign: 'center', marginTop: '50px' }}>Loading weapons...</div>;
 
   return (
-    
     <div className="container">
       {/* ส่วนหัวแสดงชื่อ User และปุ่ม Logout */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <p style={{ color: '#ffffffff'}}>
+        <div style={{ color: '#ffffffff'}}>
           <h1>คลังแสง (Weapon Catalog)</h1>
-        </p>
+        </div>
       </div>
 
       {/* แสดงรายการสินค้า */}
       <div className="weapon-grid">
       {weapons.map((weapon) => (
         <div key={weapon.id} className={`weapon-card ${getCardClass(weapon.category)}`}>
-          <span className="badge">{weapon.category}</span>
           
-          <h3>{weapon.name}</h3>
+          {/* 1. ย้ายชื่อสินค้ามาไว้บนสุด */}
+          <h3 style={{ marginTop: '0', marginBottom: '10px' }}>{weapon.name}</h3>
+
+          {/* 2. ใส่รูปภาพตรงกลาง (ถ้าไม่มีรูปจะแสดง Placeholder สีเทา) */}
+          <div style={{ 
+            width: '100%', 
+            height: '180px', // กำหนดความสูงรูป
+            backgroundColor: '#eee', 
+            marginBottom: '10px', 
+            borderRadius: '4px', 
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+             <img 
+               src={weapon.image || "https://placehold.co/400x300?text=No+Image"} 
+               alt={weapon.name}
+               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+               onError={(e) => {
+                 // ถ้าโหลดรูปไม่ได้ ให้เปลี่ยนเป็น Placeholder
+                 (e.target as HTMLImageElement).src = "https://placehold.co/400x300?text=Image+Error";
+               }}
+             />
+          </div>
+
+          {/* 3. ประเภทสินค้าอยู่ใต้รูป */}
+          <div style={{ marginBottom: '10px' }}>
+             <span className="badge">{weapon.category}</span>
+          </div>
+          
           <p style={{ color: '#555', minHeight: '40px' }}>{weapon.description}</p>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginTop: '15px' }}>
@@ -64,10 +92,9 @@ const HomePage = () => {
               <div className="stock">คงเหลือ: {weapon.stock} ชิ้น</div>
             </div>
             
-            {/* 3. แก้ปุ่มให้กดแล้วไปหน้า Detail */}
             <button 
               onClick={() => navigate(`/product/${weapon.id}`)} 
-              style={{ width: 'auto', padding: '8px 15px', backgroundColor: '#333' }}
+              style={{ width: 'auto', padding: '8px 15px', backgroundColor: '#333', color: 'white', border: 'none', cursor: 'pointer' }}
             >
               ดูรายละเอียด
             </button>

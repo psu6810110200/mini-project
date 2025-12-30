@@ -19,6 +19,7 @@ export interface WeaponPayload {
   stock: number;
   category: string;
   required_license_level: number;
+  image?: string;
 }
 
 export const WeaponCategory = {
@@ -38,6 +39,7 @@ export interface Weapon {
   category: WeaponCategory; // ตรงนี้ยังใช้ได้เหมือนเดิมเป๊ะ
   required_license_level: number;
   updated_at?: string;
+  image?: string;
 }
 export interface CartItem extends Weapon {
   quantity: number;
