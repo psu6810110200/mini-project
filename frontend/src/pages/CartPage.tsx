@@ -11,7 +11,8 @@ const CartPage = () => {
   const [loading, setLoading] = useState(false);
 
   const handleCheckout = async () => {
-    const token = localStorage.getItem('token'); 
+    // ✅ แก้ไข: เปลี่ยนชื่อ Key เป็น access_token ให้ตรงกับใน Local Storage ของคุณ
+    const token = localStorage.getItem('access_token'); 
 
     if (!token) {
       toast.error('กรุณาเข้าสู่ระบบก่อนทำการสั่งซื้อ');
@@ -51,8 +52,12 @@ const CartPage = () => {
   if (items.length === 0) {
     return (
       <div className="container" style={{ textAlign: 'center', marginTop: '100px', color: 'white' }}>
-        <h2>🛒 ตะกร้าสินค้าของคุณว่างเปล่า</h2>
-        <button onClick={() => navigate('/')} style={{ marginTop: '20px', padding: '10px 20px', cursor: 'pointer' }}>
+        <h1>🛒 ตะกร้าสินค้าของคุณว่างเปล่า</h1>
+        <p style={{ color: '#aaa' }}>ยังไม่มีสินค้าในตะกร้าเลย ไปช้อปกันเถอะ!</p>
+        <button 
+          onClick={() => navigate('/')} 
+          style={{ marginTop: '20px', backgroundColor: '#ffc107', color: 'black', width: 'auto', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+        >
           ไปเลือกซื้อสินค้า
         </button>
       </div>
@@ -79,7 +84,7 @@ const CartPage = () => {
             }}>
               
               <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                {/* แก้ไขส่วนรูปภาพ: เปลี่ยนจาก Emoji เป็น Tag <img> */}
+                {/* ส่วนรูปภาพ */}
                 <div style={{ 
                   width: '80px', 
                   height: '80px', 

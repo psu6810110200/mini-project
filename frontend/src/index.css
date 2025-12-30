@@ -4,13 +4,19 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-image: url('./assets/wallpaper gun shop.jpg'); 
   
-  /* ปรับให้รูปเต็มจอเสมอ */
+  /* --- ส่วนที่ต้องแก้ไข/เพิ่ม --- */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   
+  /* เพิ่มบรรทัดนี้เพื่อล็อคพื้นหลังให้อยู่กับที่ ไม่เลื่อนตาม Scroll */
+  background-attachment: fixed; 
+  
   /* ล็อคความสูงขั้นต่ำไว้ที่ 100% ของหน้าจอ */
   min-height: 100vh;
+
+  /* ป้องกันภาพกระตุกเวลา Scrollbar ปรากฏ (Optional) */
+  overflow-y: overlay;
   
 }
 .container {
