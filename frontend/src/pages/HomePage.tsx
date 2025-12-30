@@ -41,15 +41,9 @@ const HomePage = () => {
     <div className="container">
       {/* ส่วนหัวแสดงชื่อ User และปุ่ม Logout */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h1>คลังแสง (Weapon Catalog)</h1>
-        <div>
-          <span style={{ marginRight: '15px' }}>
-            สวัสดี, <strong>{auth?.user?.username}</strong> ({auth?.user?.role})
-          </span>
-          <button onClick={auth?.logout} style={{ backgroundColor: '#dc3545', width: 'auto', padding: '8px 16px' }}>
-            Logout
-          </button>
-        </div>
+        <p style={{ color: '#ffffffff'}}>
+          <h1>คลังแสง (Weapon Catalog)</h1>
+        </p>
       </div>
 
       {/* แสดงรายการสินค้า */}

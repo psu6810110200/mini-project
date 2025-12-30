@@ -1,6 +1,6 @@
 // src/pages/AdminDashboard.tsx
 import { useEffect, useState } from 'react';
-import { getWeapons, createWeapon, updateWeapon, deleteWeapon } from '../api/weaponAPI';
+import { getWeapons, createWeapon, updateWeapon, deleteWeapon } from '../api/weaponApi';
 import type { Weapon, WeaponPayload } from '../types';
 import { toast } from 'react-toastify';
 
@@ -160,48 +160,50 @@ const AdminDashboard = () => {
       </div>
 
       {/* --- Table Section --- */}
-      <h3>รายการอาวุธทั้งหมด ({weapons.length})</h3>
-      {loading ? <p>Loading...</p> : (
-        <table border={1} cellPadding={10} style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#eee' }}>
-              <th>ชื่อ</th>
-              <th>ราคา</th>
-              <th>Stock</th>
-              <th>หมวดหมู่</th>
-              <th>License Level</th>
-              <th>จัดการ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {weapons.map((w) => (
-              <tr key={w.id}>
-                <td>
-                  <strong>{w.name}</strong><br/>
-                  <small style={{color: '#666'}}>{w.description.substring(0, 50)}...</small>
-                </td>
-                <td>${Number(w.price).toLocaleString()}</td>
-                <td>{w.stock}</td>
-                <td>
-                  <span style={{ 
-                    padding: '2px 8px', 
-                    borderRadius: '4px', 
-                    fontSize: '0.8rem',
-                    backgroundColor: w.category === 'explosive' ? '#ffcccc' : w.category === 'heavy' ? '#e6ccff' : '#ccffcc' 
-                  }}>
-                    {w.category.toUpperCase()}
-                  </span>
-                </td>
-                <td style={{textAlign: 'center'}}>{w.required_license_level}</td>
-                <td style={{textAlign: 'center'}}>
-                  <button onClick={() => startEdit(w)} style={{ marginRight: '5px', cursor: 'pointer' }}>✏️ แก้ไข</button>
-                  <button onClick={() => handleDelete(w.id)} style={{ color: 'red', cursor: 'pointer' }}>🗑️ ลบ</button>
-                </td>
+      <div className="card" style={{ marginTop: '20px', overflowX: 'auto', color: 'black' }}>
+        <h3>รายการอาวุธทั้งหมด ({weapons.length})</h3>
+        {loading ? <p>Loading...</p> : (
+          <table border={1} cellPadding={10} style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#eee' }}>
+                <th>ชื่อ</th>
+                <th>ราคา</th>
+                <th>Stock</th>
+                <th>หมวดหมู่</th>
+                <th>License Level</th>
+                <th>จัดการ</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {weapons.map((w) => (
+                <tr key={w.id}>
+                  <td>
+                    <strong>{w.name}</strong><br/>
+                    <small style={{color: '#666'}}>{w.description.substring(0, 50)}...</small>
+                  </td>
+                  <td>${Number(w.price).toLocaleString()}</td>
+                  <td>{w.stock}</td>
+                  <td>
+                    <span style={{ 
+                      padding: '2px 8px', 
+                      borderRadius: '4px', 
+                      fontSize: '0.8rem',
+                      backgroundColor: w.category === 'explosive' ? '#ffcccc' : w.category === 'heavy' ? '#e6ccff' : '#ccffcc' 
+                    }}>
+                      {w.category.toUpperCase()}
+                    </span>
+                  </td>
+                  <td style={{textAlign: 'center'}}>{w.required_license_level}</td>
+                  <td style={{textAlign: 'center'}}>
+                    <button onClick={() => startEdit(w)} style={{ marginRight: '5px', cursor: 'pointer' }}>✏️ แก้ไข</button>
+                    <button onClick={() => handleDelete(w.id)} style={{ color: 'red', cursor: 'pointer' }}>🗑️ ลบ</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 };

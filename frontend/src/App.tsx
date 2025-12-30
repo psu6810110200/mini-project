@@ -9,6 +9,7 @@ import { useContext } from 'react';
 import React from 'react';
 import Navbar from './components/Navbar'; // [เพิ่ม] import Navbar
 import AdminDashboard from './pages/AdminDashboard';
+import HomePage from './pages/HomePage';
 
 // สร้าง Component เพื่อป้องกันหน้า Home (ถ้ายังไม่ Login ให้เด้งไป Login)
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -34,16 +35,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   return children as React.ReactElement;
 };
 
-// หน้า Home ง่ายๆ (เอาไว้เทสว่า Login ผ่านไหม)
-const HomePage = () => {
-  const auth = useContext(AuthContext);
-  return (
-    <div className="container">
-      <h1>ยินดีต้อนรับ, {auth?.user?.username} ({auth?.user?.role})</h1>
-      <p>นี่คือหน้าร้านขายอาวุธ (สำหรับสมาชิกเท่านั้น)</p>
-    </div>
-  );
-};
+
 
 function App() {
   return (
