@@ -1,14 +1,26 @@
-// src/pages/AdminDashboard.tsx
+// frontend/src/pages/AdminDashboard.tsx
 import { useEffect, useState } from 'react';
 import { getWeapons, createWeapon, updateWeapon, deleteWeapon } from '../api/weaponApi';
-import type { Weapon, WeaponPayload } from '../types';
+import { getAllOrders, updateOrderStatus } from '../api/orderApi'; // ✅ เพิ่ม import
+import type { Weapon, WeaponPayload, Order } from '../types';
+import { OrderStatus } from '../types'; // ✅ import Enum
 import { toast } from 'react-toastify';
 
+// ✅ Interface พิเศษสำหรับหน้านี้เพื่อให้รองรับข้อมูล User ที่ Backend ส่งมาเพิ่ม
+interface AdminOrder extends Order {
+  user?: {
+    username: string;
+    email?: string;
+  };
+}
+
 const AdminDashboard = () => {
+  // ✅ State สำหรับสลับ Tab ('weapons' | 'orders')
+  const [activeTab, setActiveTab] = useState<'weapons' | 'orders'>('weapons');
+
+  // --- State ส่วน Weapons ---
   const [weapons, setWeapons] = useState<Weapon[]>([]);
-  const [loading, setLoading] = useState(false);
-  
-  // State สำหรับจัดการ Form
+  const [loadingWeapons, setLoadingWeapons] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [formData, setFormData] = useState<WeaponPayload>({
@@ -20,23 +32,46 @@ const AdminDashboard = () => {
     required_license_level: 1,
   });
 
-  const fetchData = async () => {
+  // --- State ส่วน Orders ---
+  const [orders, setOrders] = useState<AdminOrder[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+
+  // ✅ Fetch Weapons
+  const fetchWeapons = async () => {
     try {
-      setLoading(true);
+      setLoadingWeapons(true);
       const data = await getWeapons();
       setWeapons(data);
     } catch (error) {
       toast.error('ไม่สามารถดึงข้อมูลอาวุธได้');
     } finally {
-      setLoading(false);
+      setLoadingWeapons(false);
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // ✅ Fetch Orders
+  const fetchOrders = async () => {
+    try {
+      setLoadingOrders(true);
+      const data = await getAllOrders();
+      setOrders(data);
+    } catch (error) {
+      toast.error('ไม่สามารถดึงข้อมูลคำสั่งซื้อได้');
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
 
-  // จัดการ input ในฟอร์ม
+  // ✅ Effect โหลดข้อมูลตาม Tab ที่เลือก
+  useEffect(() => {
+    if (activeTab === 'weapons') {
+      fetchWeapons();
+    } else {
+      fetchOrders();
+    }
+  }, [activeTab]);
+
+  // --- Handlers: Weapon ---
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -45,7 +80,6 @@ const AdminDashboard = () => {
     }));
   };
 
-  // Submit Form (Create หรือ Update)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -56,9 +90,8 @@ const AdminDashboard = () => {
         await createWeapon(formData);
         toast.success('เพิ่มอาวุธสำเร็จ');
       }
-      // Reset Form และโหลดข้อมูลใหม่
       resetForm();
-      fetchData();
+      fetchWeapons();
     } catch (error) {
       toast.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
     }
@@ -69,7 +102,7 @@ const AdminDashboard = () => {
     try {
       await deleteWeapon(id);
       toast.success('ลบข้อมูลสำเร็จ');
-      fetchData();
+      fetchWeapons();
     } catch (error) {
       toast.error('ลบข้อมูลไม่สำเร็จ');
     }
@@ -86,7 +119,6 @@ const AdminDashboard = () => {
       category: weapon.category,
       required_license_level: weapon.required_license_level,
     });
-    // เลื่อนหน้าจอขึ้นไปที่ฟอร์ม
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -103,107 +135,204 @@ const AdminDashboard = () => {
     });
   };
 
+  // --- Handlers: Order ---
+  const handleStatusUpdate = async (id: string, newStatus: OrderStatus) => {
+    if (!confirm(`ยืนยันเปลี่ยนสถานะเป็น ${newStatus}?`)) return;
+    try {
+      await updateOrderStatus(id, newStatus);
+      toast.success(`อัปเดตสถานะเป็น ${newStatus} แล้ว`);
+      fetchOrders(); // โหลดข้อมูลใหม่
+    } catch (error) {
+      toast.error('อัปเดตสถานะล้มเหลว');
+    }
+  };
+
   return (
     <div className="container" style={{ marginTop: '20px' }}>
-      <h1>Admin Dashboard - จัดการคลังอาวุธ</h1>
+      <h1>Admin Dashboard</h1>
 
-      {/* --- Form Section --- */}
-      <div className="card" style={{ padding: '20px', marginBottom: '30px', backgroundColor: '#f9f9f9', border: '1px solid #ddd' }}>
-        <h3>{isEditing ? 'แก้ไขอาวุธ' : 'เพิ่มอาวุธใหม่'}</h3>
-        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr' }}>
-          
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label>ชื่ออาวุธ:</label>
-            <input type="text" name="name" value={formData.name} onChange={handleChange} required className="input-field" />
+      {/* ✅ Tab Menu */}
+      <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+        <button 
+          onClick={() => setActiveTab('weapons')}
+          className="btn-primary"
+          style={{ opacity: activeTab === 'weapons' ? 1 : 0.6, cursor: 'pointer' }}
+        >
+          จัดการคลังอาวุธ
+        </button>
+        <button 
+          onClick={() => setActiveTab('orders')}
+          className="btn-primary"
+          style={{ opacity: activeTab === 'orders' ? 1 : 0.6, cursor: 'pointer' }}
+        >
+          ตรวจสอบคำสั่งซื้อ
+        </button>
+      </div>
+
+      {/* ==================== WEAPONS TAB ==================== */}
+      {activeTab === 'weapons' && (
+        <>
+          <div className="card" style={{ padding: '20px', marginBottom: '30px', backgroundColor: '#f9f9f9', border: '1px solid #ddd' }}>
+            <h3>{isEditing ? 'แก้ไขอาวุธ' : 'เพิ่มอาวุธใหม่'}</h3>
+            <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr' }}>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label>ชื่ออาวุธ:</label>
+                <input type="text" name="name" value={formData.name} onChange={handleChange} required className="input-field" />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label>รายละเอียด:</label>
+                <textarea name="description" value={formData.description} onChange={handleChange} required className="input-field" rows={3} />
+              </div>
+              <div>
+                <label>ราคา ($):</label>
+                <input type="number" name="price" value={formData.price} onChange={handleChange} required className="input-field" />
+              </div>
+              <div>
+                <label>จำนวนในคลัง:</label>
+                <input type="number" name="stock" value={formData.stock} onChange={handleChange} required className="input-field" />
+              </div>
+              <div>
+                <label>หมวดหมู่:</label>
+                <select name="category" value={formData.category} onChange={handleChange} className="input-field">
+                  <option value="light">Light</option>
+                  <option value="heavy">Heavy</option>
+                  <option value="explosive">Explosive</option>
+                </select>
+              </div>
+              <div>
+                <label>เลเวลใบอนุญาตที่ต้องใช้:</label>
+                <input type="number" name="required_license_level" value={formData.required_license_level} onChange={handleChange} required className="input-field" />
+              </div>
+              <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
+                <button type="submit" className="btn-primary" style={{ marginRight: '10px' }}>
+                  {isEditing ? 'บันทึกการแก้ไข' : 'เพิ่มอาวุธ'}
+                </button>
+                {isEditing && (
+                  <button type="button" onClick={resetForm} className="btn-secondary">
+                    ยกเลิก
+                  </button>
+                )}
+              </div>
+            </form>
           </div>
 
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label>รายละเอียด:</label>
-            <textarea name="description" value={formData.description} onChange={handleChange} required className="input-field" rows={3} />
-          </div>
-
-          <div>
-            <label>ราคา ($):</label>
-            <input type="number" name="price" value={formData.price} onChange={handleChange} required className="input-field" />
-          </div>
-
-          <div>
-            <label>จำนวนในคลัง:</label>
-            <input type="number" name="stock" value={formData.stock} onChange={handleChange} required className="input-field" />
-          </div>
-
-          <div>
-            <label>หมวดหมู่:</label>
-            <select name="category" value={formData.category} onChange={handleChange} className="input-field">
-              <option value="light">Light</option>
-              <option value="heavy">Heavy</option>
-              <option value="explosive">Explosive</option>
-            </select>
-          </div>
-
-          <div>
-            <label>เลเวลใบอนุญาตที่ต้องใช้:</label>
-            <input type="number" name="required_license_level" value={formData.required_license_level} onChange={handleChange} required className="input-field" />
-          </div>
-
-          <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
-            <button type="submit" className="btn-primary" style={{ marginRight: '10px' }}>
-              {isEditing ? 'บันทึกการแก้ไข' : 'เพิ่มอาวุธ'}
-            </button>
-            {isEditing && (
-              <button type="button" onClick={resetForm} className="btn-secondary">
-                ยกเลิก
-              </button>
+          <div className="card" style={{ marginTop: '20px', overflowX: 'auto', color: 'black' }}>
+            <h3>รายการอาวุธทั้งหมด ({weapons.length})</h3>
+            {loadingWeapons ? <p>Loading...</p> : (
+              <table border={1} cellPadding={10} style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#eee' }}>
+                    <th>ชื่อ</th>
+                    <th>ราคา</th>
+                    <th>Stock</th>
+                    <th>หมวดหมู่</th>
+                    <th>License Level</th>
+                    <th>จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {weapons.map((w) => (
+                    <tr key={w.id}>
+                      <td>
+                        <strong>{w.name}</strong><br/>
+                        <small style={{color: '#666'}}>{w.description.substring(0, 50)}...</small>
+                      </td>
+                      <td>${Number(w.price).toLocaleString()}</td>
+                      <td>{w.stock}</td>
+                      <td>
+                        <span style={{ 
+                          padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem',
+                          backgroundColor: w.category === 'explosive' ? '#ffcccc' : w.category === 'heavy' ? '#e6ccff' : '#ccffcc' 
+                        }}>
+                          {w.category.toUpperCase()}
+                        </span>
+                      </td>
+                      <td style={{textAlign: 'center'}}>{w.required_license_level}</td>
+                      <td style={{textAlign: 'center'}}>
+                        <button onClick={() => startEdit(w)} style={{ marginRight: '5px', cursor: 'pointer' }}>✏️ แก้ไข</button>
+                        <button onClick={() => handleDelete(w.id)} style={{ color: 'red', cursor: 'pointer' }}>🗑️ ลบ</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
           </div>
-        </form>
-      </div>
+        </>
+      )}
 
-      {/* --- Table Section --- */}
-      <div className="card" style={{ marginTop: '20px', overflowX: 'auto', color: 'black' }}>
-        <h3>รายการอาวุธทั้งหมด ({weapons.length})</h3>
-        {loading ? <p>Loading...</p> : (
-          <table border={1} cellPadding={10} style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
-            <thead>
-              <tr style={{ backgroundColor: '#eee' }}>
-                <th>ชื่อ</th>
-                <th>ราคา</th>
-                <th>Stock</th>
-                <th>หมวดหมู่</th>
-                <th>License Level</th>
-                <th>จัดการ</th>
-              </tr>
-            </thead>
-            <tbody>
-              {weapons.map((w) => (
-                <tr key={w.id}>
-                  <td>
-                    <strong>{w.name}</strong><br/>
-                    <small style={{color: '#666'}}>{w.description.substring(0, 50)}...</small>
-                  </td>
-                  <td>${Number(w.price).toLocaleString()}</td>
-                  <td>{w.stock}</td>
-                  <td>
-                    <span style={{ 
-                      padding: '2px 8px', 
-                      borderRadius: '4px', 
-                      fontSize: '0.8rem',
-                      backgroundColor: w.category === 'explosive' ? '#ffcccc' : w.category === 'heavy' ? '#e6ccff' : '#ccffcc' 
-                    }}>
-                      {w.category.toUpperCase()}
-                    </span>
-                  </td>
-                  <td style={{textAlign: 'center'}}>{w.required_license_level}</td>
-                  <td style={{textAlign: 'center'}}>
-                    <button onClick={() => startEdit(w)} style={{ marginRight: '5px', cursor: 'pointer' }}>✏️ แก้ไข</button>
-                    <button onClick={() => handleDelete(w.id)} style={{ color: 'red', cursor: 'pointer' }}>🗑️ ลบ</button>
-                  </td>
+      {/* ==================== ORDERS TAB ==================== */}
+      {activeTab === 'orders' && (
+        <div className="card" style={{ marginTop: '20px', overflowX: 'auto', color: 'black' }}>
+          <h3>รายการคำสั่งซื้อ ({orders.length})</h3>
+          {loadingOrders ? <p>Loading...</p> : (
+            <table border={1} cellPadding={10} style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#eee' }}>
+                  <th>Order ID</th>
+                  <th>ลูกค้า</th>
+                  <th>รายการสินค้า</th>
+                  <th>ยอดรวม</th>
+                  <th>สถานะ</th>
+                  <th>วันที่สั่ง</th>
+                  <th>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+              </thead>
+              <tbody>
+                {orders.map((order) => (
+                  <tr key={order.id}>
+                    <td><small>{order.id.substring(0, 8)}...</small></td>
+                    <td>{order.user?.username || 'Unknown'}</td>
+                    <td>
+                      <ul style={{ paddingLeft: '20px', margin: 0 }}>
+                        {order.order_items?.map((item) => (
+                          <li key={item.id}>
+                            {item.weapon?.name || 'Item'} x {item.quantity}
+                          </li>
+                        ))}
+                      </ul>
+                    </td>
+                    <td><strong>${Number(order.total_price).toLocaleString()}</strong></td>
+                    <td>
+                      <span style={{
+                        padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold',
+                        backgroundColor: 
+                          order.status === OrderStatus.APPROVED ? '#ccffcc' : 
+                          order.status === OrderStatus.REJECTED ? '#ffcccc' : '#fff3cd',
+                        color: 
+                          order.status === OrderStatus.APPROVED ? 'green' : 
+                          order.status === OrderStatus.REJECTED ? 'red' : '#856404'
+                      }}>
+                        {order.status.toUpperCase()}
+                      </span>
+                    </td>
+                    <td>{new Date(order.created_at).toLocaleString()}</td>
+                    <td>
+                      {order.status === OrderStatus.PENDING && (
+                        <div style={{ display: 'flex', gap: '5px' }}>
+                          <button 
+                            onClick={() => handleStatusUpdate(order.id, OrderStatus.APPROVED)}
+                            style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}
+                          >
+                            Approve
+                          </button>
+                          <button 
+                            onClick={() => handleStatusUpdate(order.id, OrderStatus.REJECTED)}
+                            style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                      {order.status !== OrderStatus.PENDING && <span style={{ color: '#999' }}>ดำเนินการแล้ว</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
     </div>
   );
 };
