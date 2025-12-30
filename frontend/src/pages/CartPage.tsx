@@ -2,7 +2,7 @@
 import React, { useContext, useState } from 'react';
 import { CartContext } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios'; // ✅ แก้ไข: ใช้ api ตัวกลางแทน axios
 import { toast } from 'react-toastify';
 
 const CartPage = () => {
@@ -11,7 +11,6 @@ const CartPage = () => {
   const [loading, setLoading] = useState(false);
 
   const handleCheckout = async () => {
-    // ✅ แก้ไข: เปลี่ยนชื่อ Key เป็น access_token ให้ตรงกับใน Local Storage ของคุณ
     const token = localStorage.getItem('access_token'); 
 
     if (!token) {
@@ -29,7 +28,9 @@ const CartPage = () => {
         })),
       };
 
-      const response = await axios.post('http://localhost:3000/orders', payload, {
+      // ✅ แก้ไข: ใช้ api.post และ path แบบ Relative
+      // ระบบจะยิงไปที่ Port เดียวกับที่ตั้งไว้ใน api/axios.ts อัตโนมัติ
+      const response = await api.post('/orders', payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -38,8 +39,21 @@ const CartPage = () => {
           position: "top-right",
           autoClose: 3000,
         });
+
+        // คำนวณจำนวนสินค้า
+        const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+
         clearCart();
-        navigate('/'); 
+        
+        // ส่งข้อมูลไปยังหน้า Order Success
+        navigate('/order-success', { 
+          state: { 
+             // ใช้ข้อมูลจาก response ถ้ามี หรือใช้จาก Context ถ้า backend ไม่ส่งมา
+            orderId: response.data.orderId || response.data.id, 
+            totalPrice: response.data.totalPrice || totalPrice,
+            totalQuantity: totalQuantity
+          } 
+        });
       }
     } catch (error: any) {
       console.error('Checkout Error:', error);
@@ -65,11 +79,11 @@ const CartPage = () => {
   }
 
   return (
-    <div className="container" style={{ marginTop: '40px', color: 'white' }}>
+    <div className="container" style={{ marginTop: '40px', color: 'white', paddingBottom: '50px' }}>
       <h1 style={{ marginBottom: '30px' }}>ตะกร้าสินค้าของคุณ</h1>
 
       <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap' }}>
-        {/* รายการสินค้าในตะกร้า */}
+        {/* รายการสินค้า */}
         <div style={{ flex: '2', minWidth: '400px' }}>
           {items.map((item) => (
             <div key={item.id} style={{ 
@@ -84,7 +98,6 @@ const CartPage = () => {
             }}>
               
               <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                {/* ส่วนรูปภาพ */}
                 <div style={{ 
                   width: '80px', 
                   height: '80px', 
@@ -99,9 +112,7 @@ const CartPage = () => {
                     src={item.image || "https://placehold.co/100x100?text=No+Img"} 
                     alt={item.name}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "https://placehold.co/100x100?text=Error";
-                    }}
+                    onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/100x100?text=Error"; }}
                   />
                 </div>
 
@@ -131,7 +142,7 @@ const CartPage = () => {
           ))}
         </div>
 
-        {/* ส่วนสรุปราคารวม */}
+        {/* สรุปราคา */}
         <div style={{ flex: '1', minWidth: '300px' }}>
           <div style={{ backgroundColor: 'white', color: 'black', padding: '25px', borderRadius: '12px', position: 'sticky', top: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }}>
             <h3 style={{ marginTop: 0 }}>สรุปรายการสั่งซื้อ</h3>

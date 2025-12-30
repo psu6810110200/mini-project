@@ -1,25 +1,23 @@
-// frontend/src/pages/AdminDashboard.tsx
-import { useEffect, useState } from 'react';
+// src/pages/AdminDashboard.tsx
+import React, { useEffect, useState } from 'react';
 import { getWeapons, createWeapon, updateWeapon, deleteWeapon } from '../api/weaponApi';
 import { getAllOrders, updateOrderStatus } from '../api/orderApi';
 import type { Weapon, WeaponPayload, Order } from '../types';
 import { OrderStatus } from '../types';
 import { toast } from 'react-toastify';
 
-// ✅ Interface พิเศษสำหรับหน้านี้ (เพิ่ม license_number)
 interface AdminOrder extends Order {
   user?: {
     username: string;
     email?: string;
-    license_number?: string; // <-- เพิ่ม field นี้
+    license_number?: string;
   };
 }
 
 const AdminDashboard = () => {
-  // ✅ State สำหรับสลับ Tab
   const [activeTab, setActiveTab] = useState<'weapons' | 'orders'>('weapons');
 
-  // --- State ส่วน Weapons ---
+  // --- State Weapons ---
   const [weapons, setWeapons] = useState<Weapon[]>([]);
   const [loadingWeapons, setLoadingWeapons] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -35,11 +33,10 @@ const AdminDashboard = () => {
     image: '', 
   });
 
-  // --- State ส่วน Orders ---
+  // --- State Orders ---
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
 
-  // ✅ Fetch Weapons
   const fetchWeapons = async () => {
     try {
       setLoadingWeapons(true);
@@ -52,13 +49,15 @@ const AdminDashboard = () => {
     }
   };
 
-  // ✅ Fetch Orders
   const fetchOrders = async () => {
     try {
       setLoadingOrders(true);
       const data = await getAllOrders();
+      // ✅ LOG ดูข้อมูลตรงนี้ (กด F12 -> Console)
+      console.log("Admin Orders Data:", data); 
       setOrders(data);
     } catch (error) {
+      console.error(error);
       toast.error('ไม่สามารถดึงข้อมูลคำสั่งซื้อได้');
     } finally {
       setLoadingOrders(false);
@@ -152,22 +151,30 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="container" style={{ marginTop: '20px' }}>
-      <h1>Admin Dashboard</h1>
+    <div className="container" style={{ marginTop: '20px', color: '#000' }}> 
+      <h1 style={{ color: 'white' }}>Admin Dashboard</h1>
 
-      {/* ✅ Tab Menu */}
+      {/* Tab Menu */}
       <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
         <button 
           onClick={() => setActiveTab('weapons')}
-          className="btn-primary"
-          style={{ opacity: activeTab === 'weapons' ? 1 : 0.6, cursor: 'pointer' }}
+          style={{ 
+            padding: '10px 20px', 
+            cursor: 'pointer',
+            backgroundColor: activeTab === 'weapons' ? '#ffc107' : '#ddd',
+            border: 'none', borderRadius: '5px', fontWeight: 'bold'
+          }}
         >
           จัดการคลังอาวุธ
         </button>
         <button 
           onClick={() => setActiveTab('orders')}
-          className="btn-primary"
-          style={{ opacity: activeTab === 'orders' ? 1 : 0.6, cursor: 'pointer' }}
+          style={{ 
+            padding: '10px 20px', 
+            cursor: 'pointer',
+            backgroundColor: activeTab === 'orders' ? '#ffc107' : '#ddd',
+            border: 'none', borderRadius: '5px', fontWeight: 'bold'
+          }}
         >
           ตรวจสอบคำสั่งซื้อ
         </button>
@@ -180,62 +187,49 @@ const AdminDashboard = () => {
             <h3>{isEditing ? 'แก้ไขอาวุธ' : 'เพิ่มอาวุธใหม่'}</h3>
             <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr' }}>
               
-              {/* ชื่ออาวุธ */}
               <div style={{ gridColumn: '1 / -1' }}>
                 <label>ชื่ออาวุธ:</label>
-                <input type="text" name="name" value={formData.name} onChange={handleChange} required className="input-field" />
+                <input type="text" name="name" value={formData.name} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
               </div>
 
-              {/* URL รูปภาพสินค้า */}
               <div style={{ gridColumn: '1 / -1' }}>
-                <label>URL รูปภาพสินค้า:</label>
-                <input 
-                  type="text" 
-                  name="image" 
-                  value={formData.image || ''} 
-                  onChange={handleChange} 
-                  placeholder="เช่น https://example.com/gun.jpg"
-                  className="input-field" 
-                />
+                <label>URL รูปภาพ:</label>
+                <input type="text" name="image" value={formData.image || ''} onChange={handleChange} placeholder="https://..." style={{ width: '100%', padding: '8px' }} />
               </div>
 
-              {/* รายละเอียด */}
               <div style={{ gridColumn: '1 / -1' }}>
                 <label>รายละเอียด:</label>
-                <textarea name="description" value={formData.description} onChange={handleChange} required className="input-field" rows={3} />
+                <textarea name="description" value={formData.description} onChange={handleChange} required rows={3} style={{ width: '100%', padding: '8px' }} />
               </div>
               
-              {/* ราคา & Stock */}
               <div>
                 <label>ราคา ($):</label>
-                <input type="number" name="price" value={formData.price} onChange={handleChange} required className="input-field" />
+                <input type="number" name="price" value={formData.price} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
               </div>
               <div>
-                <label>จำนวนในคลัง:</label>
-                <input type="number" name="stock" value={formData.stock} onChange={handleChange} required className="input-field" />
+                <label>Stock:</label>
+                <input type="number" name="stock" value={formData.stock} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
               </div>
               
-              {/* หมวดหมู่ & License */}
               <div>
                 <label>หมวดหมู่:</label>
-                <select name="category" value={formData.category} onChange={handleChange} className="input-field">
+                <select name="category" value={formData.category} onChange={handleChange} style={{ width: '100%', padding: '8px' }}>
                   <option value="light">Light</option>
                   <option value="heavy">Heavy</option>
                   <option value="explosive">Explosive</option>
                 </select>
               </div>
               <div>
-                <label>เลเวลใบอนุญาตที่ต้องใช้:</label>
-                <input type="number" name="required_license_level" value={formData.required_license_level} onChange={handleChange} required className="input-field" />
+                <label>License Level:</label>
+                <input type="number" name="required_license_level" value={formData.required_license_level} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
               </div>
               
-              {/* Buttons */}
               <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
-                <button type="submit" className="btn-primary" style={{ marginRight: '10px' }}>
+                <button type="submit" style={{ backgroundColor: '#28a745', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', marginRight: '10px' }}>
                   {isEditing ? 'บันทึกการแก้ไข' : 'เพิ่มอาวุธ'}
                 </button>
                 {isEditing && (
-                  <button type="button" onClick={resetForm} className="btn-secondary">
+                  <button type="button" onClick={resetForm} style={{ backgroundColor: '#6c757d', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
                     ยกเลิก
                   </button>
                 )}
@@ -243,17 +237,16 @@ const AdminDashboard = () => {
             </form>
           </div>
 
-          <div className="card" style={{ marginTop: '20px', overflowX: 'auto', color: 'black' }}>
+          <div className="card" style={{ marginTop: '20px', overflowX: 'auto', backgroundColor: 'white', padding: '20px', borderRadius: '8px' }}>
             <h3>รายการอาวุธทั้งหมด ({weapons.length})</h3>
             {loadingWeapons ? <p>Loading...</p> : (
               <table border={1} cellPadding={10} style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#eee' }}>
-                    <th style={{ width: '80px' }}>รูปภาพ</th>
+                    <th>รูป</th>
                     <th>ชื่อ</th>
                     <th>ราคา</th>
                     <th>Stock</th>
-                    <th>หมวดหมู่</th>
                     <th>License</th>
                     <th>จัดการ</th>
                   </tr>
@@ -262,35 +255,15 @@ const AdminDashboard = () => {
                   {weapons.map((w) => (
                     <tr key={w.id}>
                       <td style={{ textAlign: 'center' }}>
-                        {w.image ? (
-                           <img 
-                             src={w.image} 
-                             alt="preview" 
-                             style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} 
-                             onError={(e) => (e.target as HTMLImageElement).style.display = 'none'} 
-                           />
-                        ) : (
-                           <span style={{ fontSize: '10px', color: '#999' }}>ไม่มีรูป</span>
-                        )}
+                        {w.image ? <img src={w.image} alt="p" style={{ width: '50px', height: '50px', objectFit: 'cover' }} /> : '-'}
                       </td>
-                      <td>
-                        <strong>{w.name}</strong><br/>
-                        <small style={{color: '#666'}}>{w.description.substring(0, 50)}...</small>
-                      </td>
+                      <td>{w.name}</td>
                       <td>${Number(w.price).toLocaleString()}</td>
                       <td>{w.stock}</td>
-                      <td>
-                        <span style={{ 
-                          padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem',
-                          backgroundColor: w.category === 'explosive' ? '#ffcccc' : w.category === 'heavy' ? '#e6ccff' : '#ccffcc' 
-                        }}>
-                          {w.category.toUpperCase()}
-                        </span>
-                      </td>
                       <td style={{textAlign: 'center'}}>{w.required_license_level}</td>
                       <td style={{textAlign: 'center'}}>
-                        <button onClick={() => startEdit(w)} style={{ marginRight: '5px', cursor: 'pointer' }}>✏️ แก้ไข</button>
-                        <button onClick={() => handleDelete(w.id)} style={{ color: 'red', cursor: 'pointer' }}>🗑️ ลบ</button>
+                        <button onClick={() => startEdit(w)} style={{ marginRight: '5px', cursor: 'pointer' }}>✏️</button>
+                        <button onClick={() => handleDelete(w.id)} style={{ color: 'red', cursor: 'pointer' }}>🗑️</button>
                       </td>
                     </tr>
                   ))}
@@ -303,7 +276,7 @@ const AdminDashboard = () => {
 
       {/* ==================== ORDERS TAB ==================== */}
       {activeTab === 'orders' && (
-        <div className="card" style={{ marginTop: '20px', overflowX: 'auto', color: 'black' }}>
+        <div className="card" style={{ marginTop: '20px', overflowX: 'auto', backgroundColor: 'white', padding: '20px', borderRadius: '8px' }}>
           <h3>รายการคำสั่งซื้อ ({orders.length})</h3>
           {loadingOrders ? <p>Loading...</p> : (
             <table border={1} cellPadding={10} style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
@@ -311,11 +284,10 @@ const AdminDashboard = () => {
                 <tr style={{ backgroundColor: '#eee' }}>
                   <th>Order ID</th>
                   <th>ลูกค้า</th>
-                  <th>License</th> {/* <-- เพิ่มหัวตารางตรงนี้ */}
+                  <th>License</th>
                   <th>รายการสินค้า</th>
                   <th>ยอดรวม</th>
                   <th>สถานะ</th>
-                  <th>วันที่สั่ง</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -325,16 +297,16 @@ const AdminDashboard = () => {
                     <td><small>{order.id.substring(0, 8)}...</small></td>
                     <td>{order.user?.username || 'Unknown'}</td>
                     
-                    {/* แสดง License Number ตรงนี้ */}
-                    <td style={{ color: order.user?.license_number ? 'blue' : '#ccc', textAlign: 'center' }}>
-                      {order.user?.license_number ? order.user.license_number : '-'}
+                    {/* แสดง License Number */}
+                    <td style={{ color: order.user?.license_number ? 'blue' : '#ccc', textAlign: 'center', fontWeight: 'bold' }}>
+                      {order.user?.license_number || '-'}
                     </td>
 
                     <td>
-                      <ul style={{ paddingLeft: '20px', margin: 0 }}>
+                      <ul style={{ paddingLeft: '20px', margin: 0, fontSize: '0.9rem' }}>
                         {order.order_items?.map((item) => (
                           <li key={item.id}>
-                            {item.weapon?.name || 'Item'} x {item.quantity}
+                            {item.weapon?.name} x {item.quantity}
                           </li>
                         ))}
                       </ul>
@@ -353,7 +325,6 @@ const AdminDashboard = () => {
                         {order.status.toUpperCase()}
                       </span>
                     </td>
-                    <td>{new Date(order.created_at).toLocaleString()}</td>
                     <td>
                       {order.status === OrderStatus.PENDING && (
                         <div style={{ display: 'flex', gap: '5px' }}>
@@ -371,7 +342,6 @@ const AdminDashboard = () => {
                           </button>
                         </div>
                       )}
-                      {order.status !== OrderStatus.PENDING && <span style={{ color: '#999' }}>ดำเนินการแล้ว</span>}
                     </td>
                   </tr>
                 ))}
