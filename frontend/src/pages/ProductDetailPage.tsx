@@ -30,7 +30,7 @@ const ProductDetailPage = () => {
     fetchWeapon();
   }, [id, navigate]);
 
-  if (loading) return <div style={{ color: 'white', textAlign: 'center', marginTop: '50px' }}>Loading...</div>;
+  if (loading) return <div style={{ color: '#ffc107', textAlign: 'center', marginTop: '50px' }}>Loading...</div>;
   if (!weapon) return null;
 
   const getBadgeColor = (cat: string) => {
@@ -43,63 +43,112 @@ const ProductDetailPage = () => {
   };
 
   return (
-    <div className="container" style={{ marginTop: '40px', color: 'white' }}>
+    <div className="container" style={{ marginTop: '20px', color: 'white', position: 'relative' }}>
+      
+      {/* 1. ปุ่มย้อนกลับแบบสั้น ชิดมุมซ้าย */}
       <button 
         onClick={() => navigate(-1)} 
-        style={{ marginBottom: '20px', background: 'transparent', border: '1px solid #666', color: '#ccc', width: 'auto', padding: '5px 15px', cursor: 'pointer' }}
+        style={{ 
+          position: 'absolute',    
+          top: '0',                
+          left: '0',               // ชิดขอบซ้ายสุดของ Container
+          backgroundColor: '#1a1a1a', 
+          border: '1px solid #ffc107', 
+          color: '#ffc107',            
+          padding: '4px 10px',     // ลด Padding ให้ปุ่มสั้นลง
+          fontSize: '0.8rem',      
+          cursor: 'pointer', 
+          borderRadius: '50px',
+          fontWeight: 'bold',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
+          transition: 'all 0.2s',
+          zIndex: 10,
+          boxShadow: '0 2px 5px rgba(0,0,0,0.5)'
+        }}
+        onMouseOver={(e) => {
+          e.currentTarget.style.backgroundColor = '#ffc107';
+          e.currentTarget.style.color = 'black';
+        }}
+        onMouseOut={(e) => {
+          e.currentTarget.style.backgroundColor = '#1a1a1a';
+          e.currentTarget.style.color = '#ffc107';
+        }}
       >
-        ← ย้อนกลับ
+        <span>←</span> กลับ
       </button>
 
-      <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
-        {/* แก้ไขส่วนการแสดงรูปภาพตรงนี้ */}
+      {/* เพิ่ม Margin Top เพื่อเว้นระยะให้เนื้อหาไม่ทับปุ่ม */}
+      <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap', alignItems: 'flex-start', marginTop: '45px' }}>
+        
+        {/* ส่วนรูปภาพ */}
         <div style={{ 
-          flex: '1', 
-          minWidth: '300px', 
+          flex: '1.5', 
+          minWidth: '350px', 
           backgroundColor: '#111', 
-          height: '450px', 
+          height: '500px', 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center', 
           borderRadius: '12px', 
-          border: `2px solid ${getBadgeColor(weapon.category)}`,
-          overflow: 'hidden' 
+          border: '1px solid #333', 
+          overflow: 'hidden',
+          padding: '20px'
         }}>
            <img 
              src={weapon.image || "https://placehold.co/600x450?text=No+Image"} 
              alt={weapon.name}
-             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
              onError={(e) => {
                (e.target as HTMLImageElement).src = "https://placehold.co/600x450?text=Image+Error";
              }}
            />
         </div>
 
+        {/* ส่วนรายละเอียด */}
         <div style={{ 
             flex: '1', 
             minWidth: '300px',
-            backgroundColor: 'white', 
+            backgroundColor: '#1a1a1a', 
             padding: '30px',          
             borderRadius: '12px',     
-            color: '#333',            
-            boxShadow: '0 4px 15px rgba(0,0,0,0.5)' 
+            color: 'white',             
+            border: '1px solid #333',   
+            boxShadow: '0 4px 20px rgba(0,0,0,0.6)' 
         }}>
-          <span style={{ backgroundColor: getBadgeColor(weapon.category), color: 'white', padding: '5px 10px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
-            {weapon.category}
-          </span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ 
+              backgroundColor: getBadgeColor(weapon.category), 
+              color: 'white', 
+              padding: '5px 12px', 
+              borderRadius: '4px', 
+              fontSize: '0.9rem', 
+              fontWeight: 'bold', 
+              textTransform: 'uppercase',
+              letterSpacing: '1px'
+            }}>
+              {weapon.category}
+            </span>
+            <span style={{ color: '#666', fontSize: '0.9rem' }}>ID: {weapon.id.substring(0,6)}</span>
+          </div>
           
-          <h1 style={{ fontSize: '2.5rem', margin: '15px 0', color: 'black' }}>{weapon.name}</h1>
-          <p style={{ color: '#555', lineHeight: '1.6', fontSize: '1.1rem' }}>{weapon.description}</p>
+          <h1 style={{ fontSize: '2.5rem', margin: '20px 0', color: 'white', lineHeight: '1.2' }}>{weapon.name}</h1>
+          <p style={{ color: '#aaa', lineHeight: '1.6', fontSize: '1.1rem' }}>{weapon.description}</p>
           
-          <div style={{ margin: '30px 0', borderTop: '1px solid #eee', borderBottom: '1px solid #eee', padding: '20px 0' }}>
-            <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#333' }}>
+          <div style={{ margin: '30px 0', borderTop: '1px solid #333', borderBottom: '1px solid #333', padding: '25px 0' }}>
+            
+            <div style={{ fontSize: '3rem', fontWeight: 'bold', color: '#ffc107', textShadow: '0 0 10px rgba(255, 193, 7, 0.2)' }}>
               ฿{weapon.price.toLocaleString()}
             </div>
-            <div style={{ marginTop: '10px', color: weapon.stock > 0 ? '#28a745' : '#dc3545', fontWeight: 'bold' }}>
-              {weapon.stock > 0 ? `● มีสินค้า ${weapon.stock} ชิ้น` : '● สินค้าหมด'}
-            </div>
-            <div style={{ marginTop: '5px', color: '#666' }}>
-              Requires License Level: <strong style={{ color: 'black' }}>{weapon.required_license_level}</strong>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '15px' }}>
+              <div style={{ color: weapon.stock > 0 ? '#28a745' : '#dc3545', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                {weapon.stock > 0 ? `✓ มีสินค้าในคลัง ${weapon.stock} ชิ้น` : '✕ สินค้าหมดชั่วคราว'}
+              </div>
+              <div style={{ color: '#ccc' }}>
+                Requires License Level: <strong style={{ color: '#ffc107', border: '1px solid #ffc107', padding: '0 6px', borderRadius: '4px' }}>{weapon.required_license_level}</strong>
+              </div>
             </div>
           </div>
 
@@ -111,14 +160,16 @@ const ProductDetailPage = () => {
                 backgroundColor: weapon.stock > 0 ? '#007bff' : '#ccc', 
                 color: 'white',
                 fontSize: '1.2rem', 
-                padding: '12px 24px',
+                padding: '15px 30px',
                 border: 'none',
                 borderRadius: '6px',
                 cursor: weapon.stock > 0 ? 'pointer' : 'not-allowed',
                 fontWeight: 'bold',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px'
+                gap: '10px',
+                flex: 1,
+                justifyContent: 'center'
               }}
             >
               🛒 {weapon.stock > 0 ? 'เพิ่มลงตะกร้า' : 'สินค้าหมด'}

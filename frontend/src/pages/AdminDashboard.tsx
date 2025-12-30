@@ -53,11 +53,8 @@ const AdminDashboard = () => {
     try {
       setLoadingOrders(true);
       const data = await getAllOrders();
-      // ✅ LOG ดูข้อมูลตรงนี้ (กด F12 -> Console)
-      console.log("Admin Orders Data:", data); 
       setOrders(data);
     } catch (error) {
-      console.error(error);
       toast.error('ไม่สามารถดึงข้อมูลคำสั่งซื้อได้');
     } finally {
       setLoadingOrders(false);
@@ -248,7 +245,7 @@ const AdminDashboard = () => {
                     <th>ราคา</th>
                     <th>Stock</th>
                     <th>License</th>
-                    <th>จัดการ</th>
+                    <th style={{ textAlign: 'center' }}>จัดการ</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -262,8 +259,36 @@ const AdminDashboard = () => {
                       <td>{w.stock}</td>
                       <td style={{textAlign: 'center'}}>{w.required_license_level}</td>
                       <td style={{textAlign: 'center'}}>
-                        <button onClick={() => startEdit(w)} style={{ marginRight: '5px', cursor: 'pointer' }}>✏️</button>
-                        <button onClick={() => handleDelete(w.id)} style={{ color: 'red', cursor: 'pointer' }}>🗑️</button>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                          <button 
+                            onClick={() => startEdit(w)} 
+                            style={{ 
+                              cursor: 'pointer',
+                              backgroundColor: '#ffc107', // สีเหลือง
+                              color: 'black',
+                              border: 'none',
+                              borderRadius: '5px',
+                              padding: '5px 10px',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            ✏️ แก้ไข
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(w.id)} 
+                            style={{ 
+                              cursor: 'pointer',
+                              backgroundColor: '#dc3545', // สีแดง
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '5px',
+                              padding: '5px 10px',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            🗑️ ลบ
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -288,20 +313,17 @@ const AdminDashboard = () => {
                   <th>รายการสินค้า</th>
                   <th>ยอดรวม</th>
                   <th>สถานะ</th>
-                  <th>Action</th>
+                  <th style={{ textAlign: 'center' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.map((order) => (
                   <tr key={order.id}>
                     <td><small>{order.id.substring(0, 8)}...</small></td>
-                    <td>{order.user?.username || 'Unknown'}</td>
-                    
-                    {/* แสดง License Number */}
+                    <td>{order.user?.username || 'Unknown User'}</td>
                     <td style={{ color: order.user?.license_number ? 'blue' : '#ccc', textAlign: 'center', fontWeight: 'bold' }}>
                       {order.user?.license_number || '-'}
                     </td>
-
                     <td>
                       <ul style={{ paddingLeft: '20px', margin: 0, fontSize: '0.9rem' }}>
                         {order.order_items?.map((item) => (
@@ -325,22 +347,40 @@ const AdminDashboard = () => {
                         {order.status.toUpperCase()}
                       </span>
                     </td>
-                    <td>
-                      {order.status === OrderStatus.PENDING && (
-                        <div style={{ display: 'flex', gap: '5px' }}>
+                    <td style={{ textAlign: 'center' }}>
+                      {order.status === OrderStatus.PENDING ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
                           <button 
                             onClick={() => handleStatusUpdate(order.id, OrderStatus.APPROVED)}
-                            style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}
+                            style={{ 
+                              backgroundColor: '#28a745', // สีเขียว
+                              color: 'white', 
+                              border: 'none', 
+                              padding: '5px 10px', 
+                              borderRadius: '5px', 
+                              cursor: 'pointer',
+                              fontWeight: 'bold'
+                            }}
                           >
                             Approve
                           </button>
                           <button 
                             onClick={() => handleStatusUpdate(order.id, OrderStatus.REJECTED)}
-                            style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}
+                            style={{ 
+                              backgroundColor: '#dc3545', // สีแดง
+                              color: 'white', 
+                              border: 'none', 
+                              padding: '5px 10px', 
+                              borderRadius: '5px', 
+                              cursor: 'pointer',
+                              fontWeight: 'bold'
+                            }}
                           >
                             Reject
                           </button>
                         </div>
+                      ) : (
+                        <span style={{ color: '#999', fontStyle: 'italic' }}>ดำเนินการแล้ว</span>
                       )}
                     </td>
                   </tr>

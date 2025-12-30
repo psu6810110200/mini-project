@@ -19,7 +19,7 @@ const HomePage = () => {
   const [minPrice, setMinPrice] = useState<number>(0);
   const [maxPrice, setMaxPrice] = useState<number>(1000000);
   
-  // 1. เพิ่ม State สำหรับกรองระดับใบอนุญาต (0 หมายถึงดูทุกระดับ)
+  // State สำหรับกรองระดับใบอนุญาต
   const [requiredLicense, setRequiredLicense] = useState<number>(0);
 
   useEffect(() => {
@@ -36,20 +36,15 @@ const HomePage = () => {
     fetchWeapons();
   }, []);
 
-  // --- Logic การกรองข้อมูลแบบครอบคลุมทุกเงื่อนไข ---
+  // --- Logic การกรองข้อมูล ---
   const filteredAndSortedWeapons = weapons
-    // กรองตามชื่อและรายละเอียด
     .filter(w => 
       w.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
       w.description.toLowerCase().includes(searchTerm.toLowerCase())
     )
-    // กรองตามประเภทสินค้า
     .filter(w => selectedCategory === 'ALL' || w.category.toLowerCase() === selectedCategory.toLowerCase())
-    // กรองตามช่วงราคา
     .filter(w => w.price >= minPrice && w.price <= maxPrice)
-    // 2. กรองตามระดับใบอนุญาต (แสดงเฉพาะที่ระดับไม่เกินที่กำหนด หรือถ้าเป็น 0 คือดูทั้งหมด)
     .filter(w => requiredLicense === 0 || w.required_license_level === requiredLicense)
-    // เรียงลำดับราคา
     .sort((a, b) => {
       if (priceSort === 'low-to-high') return a.price - b.price;
       if (priceSort === 'high-to-low') return b.price - a.price;
@@ -65,36 +60,36 @@ const HomePage = () => {
     }
   };
 
-  if (loading) return <div style={{ textAlign: 'center', marginTop: '50px', color: 'white' }}>Loading weapons...</div>;
+  if (loading) return <div style={{ textAlign: 'center', marginTop: '50px', color: '#ffc107' }}>Loading weapons...</div>;
 
   return (
     <div className="container">
-      <div style={{ color: '#ffffff', marginBottom: '20px' }}>
+      <div style={{ color: '#ffc107', marginBottom: '20px', textShadow: '0 0 10px rgba(255, 193, 7, 0.3)' }}>
         <h1>คลังแสง</h1>
       </div>
 
-      {/* --- Filter & Search Bar (ปรับปรุงใหม่) --- */}
+      {/* --- Filter & Search Bar --- */}
       <div style={{ 
-        backgroundColor: 'rgba(0, 0, 0, 0.75)', 
+        backgroundColor: '#1a1a1a', 
         padding: '25px', 
         borderRadius: '12px', 
         marginBottom: '30px',
         display: 'flex',
         flexDirection: 'column',
         gap: '20px',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        backdropFilter: 'blur(10px)'
+        border: '1px solid #333',
+        boxShadow: '0 4px 15px rgba(0,0,0,0.5)'
       }}>
         
         {/* ค้นหาชื่อ/รายละเอียด */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label style={{ color: '#ffc107', fontSize: '0.85rem', fontWeight: 'bold' }}>ค้นหาอาวุธ (ชื่อ/รายละเอียด)</label>
+          <label style={{ color: '#ffc107', fontSize: '0.9rem', fontWeight: 'bold' }}>ค้นหาอาวุธ</label>
           <input 
             type="text"
-            placeholder="ค้นหาอาวุธหรือสเปก..."
+            placeholder="ชื่อปืน หรือ สเปก..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ padding: '12px', borderRadius: '8px', backgroundColor: '#1a1a1a', color: 'white', border: '1px solid #444' }}
+            style={{ padding: '12px', borderRadius: '8px', backgroundColor: '#2a2a2a', color: 'white', border: '1px solid #444', outline: 'none' }}
           />
         </div>
 
@@ -108,10 +103,12 @@ const HomePage = () => {
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
                   style={{
-                    padding: '8px 12px', borderRadius: '6px', border: '1px solid #444', cursor: 'pointer',
-                    backgroundColor: selectedCategory === cat ? '#ffc107' : '#1a1a1a',
-                    color: selectedCategory === cat ? '#000' : '#fff',
-                    fontSize: '0.75rem', fontWeight: 'bold'
+                    padding: '8px 15px', borderRadius: '20px', border: selectedCategory === cat ? 'none' : '1px solid #444', 
+                    cursor: 'pointer',
+                    backgroundColor: selectedCategory === cat ? '#ffc107' : 'transparent',
+                    color: selectedCategory === cat ? '#000' : '#aaa',
+                    fontSize: '0.8rem', fontWeight: 'bold',
+                    transition: 'all 0.2s'
                   }}
                 >
                   {cat}
@@ -120,13 +117,13 @@ const HomePage = () => {
             </div>
           </div>
 
-          {/* 3. ส่วนกรองระดับใบอนุญาต (License Level Filter) */}
+          {/* License Level Filter */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ color: '#ffc107', fontSize: '0.85rem', fontWeight: 'bold' }}>License Level</label>
             <select 
               value={requiredLicense}
               onChange={(e) => setRequiredLicense(Number(e.target.value))}
-              style={{ padding: '8px', borderRadius: '6px', backgroundColor: '#1a1a1a', color: 'white', border: '1px solid #444', cursor: 'pointer' }}
+              style={{ padding: '8px', borderRadius: '6px', backgroundColor: '#2a2a2a', color: 'white', border: '1px solid #444', cursor: 'pointer' }}
             >
               <option value={0}>ทั้งหมด</option>
               <option value={1}>Level 1</option>
@@ -141,18 +138,18 @@ const HomePage = () => {
           <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ color: '#ffc107', fontSize: '0.85rem', fontWeight: 'bold' }}>ราคาต่ำสุด</label>
-              <input type="number" value={minPrice} onChange={(e) => setMinPrice(Number(e.target.value))} style={{ width: '100px', padding: '8px', borderRadius: '6px', backgroundColor: '#1a1a1a', color: 'white', border: '1px solid #444' }} />
+              <input type="number" value={minPrice} onChange={(e) => setMinPrice(Number(e.target.value))} style={{ width: '100px', padding: '8px', borderRadius: '6px', backgroundColor: '#2a2a2a', color: 'white', border: '1px solid #444' }} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ color: '#ffc107', fontSize: '0.85rem', fontWeight: 'bold' }}>ราคาสูงสุด</label>
-              <input type="number" value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} style={{ width: '100px', padding: '8px', borderRadius: '6px', backgroundColor: '#1a1a1a', color: 'white', border: '1px solid #444' }} />
+              <input type="number" value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} style={{ width: '100px', padding: '8px', borderRadius: '6px', backgroundColor: '#2a2a2a', color: 'white', border: '1px solid #444' }} />
             </div>
           </div>
 
           {/* เรียงลำดับ */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ color: '#ffc107', fontSize: '0.85rem', fontWeight: 'bold' }}>เรียงลำดับ</label>
-            <select value={priceSort} onChange={(e) => setPriceSort(e.target.value)} style={{ padding: '8px', borderRadius: '6px', backgroundColor: '#1a1a1a', color: 'white', border: '1px solid #444' }}>
+            <select value={priceSort} onChange={(e) => setPriceSort(e.target.value)} style={{ padding: '8px', borderRadius: '6px', backgroundColor: '#2a2a2a', color: 'white', border: '1px solid #444' }}>
               <option value="default">ค่าเริ่มต้น</option>
               <option value="low-to-high">ราคา: น้อยไปมาก</option>
               <option value="high-to-low">ราคา: มากไปน้อย</option>
@@ -166,11 +163,11 @@ const HomePage = () => {
               setMinPrice(0);
               setMaxPrice(1000000);
               setPriceSort('default');
-              setRequiredLicense(0); // ล้างค่า License
+              setRequiredLicense(0);
             }}
-            style={{ padding: '8px 15px', borderRadius: '6px', backgroundColor: 'transparent', color: '#aaa', border: '1px solid #444', cursor: 'pointer' }}
+            style={{ padding: '8px 15px', borderRadius: '6px', backgroundColor: '#333', color: '#fff', border: 'none', cursor: 'pointer', marginLeft: '10px' }}
           >
-            ล้างทั้งหมด
+            ล้างค่า
           </button>
         </div>
       </div>
@@ -179,28 +176,58 @@ const HomePage = () => {
         {filteredAndSortedWeapons.length > 0 ? (
           filteredAndSortedWeapons.map((weapon) => (
             <div key={weapon.id} className={`weapon-card ${getCardClass(weapon.category)}`}>
-              <h3 style={{ marginTop: '0', marginBottom: '10px' }}>{weapon.name}</h3>
-              <div style={{ width: '100%', height: '180px', backgroundColor: '#eee', marginBottom: '10px', borderRadius: '4px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                 <img src={weapon.image || "https://placehold.co/400x300?text=No+Image"} alt={weapon.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <h3 style={{ marginTop: '0', marginBottom: '10px', color: 'white' }}>{weapon.name}</h3>
+              
+              <div style={{ width: '100%', height: '180px', backgroundColor: '#333', marginBottom: '10px', borderRadius: '4px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                 <img 
+                   src={weapon.image || "https://placehold.co/400x300?text=No+Image"} 
+                   alt={weapon.name} 
+                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                   onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/400x300?text=Error"; }}
+                 />
               </div>
-              <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
+
+              <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                  <span className="badge">{weapon.category}</span>
-                 {/* แสดง Level License บนการ์ด */}
-                 <span style={{ fontSize: '0.75rem', color: '#666', fontWeight: 'bold' }}>LV: {weapon.required_license_level}</span>
+                 <span style={{ fontSize: '0.8rem', color: '#ffc107', fontWeight: 'bold', border: '1px solid #ffc107', padding: '2px 6px', borderRadius: '4px' }}>
+                   LV {weapon.required_license_level}
+                 </span>
               </div>
-              <p style={{ color: '#555', minHeight: '50px', fontSize: '0.85rem' }}>{weapon.description}</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginTop: '15px' }}>
+
+              <p style={{ color: '#aaa', minHeight: '50px', fontSize: '0.85rem', lineHeight: '1.4' }}>{weapon.description}</p>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginTop: '15px', borderTop: '1px solid #333', paddingTop: '15px' }}>
                 <div>
                   <div className="price">฿{weapon.price.toLocaleString()}</div>
-                  <div className="stock">คงเหลือ: {weapon.stock} ชิ้น</div>
+                  <div className="stock">เหลือ: {weapon.stock} ชิ้น</div>
                 </div>
-                <button onClick={() => navigate(`/product/${weapon.id}`)} style={{ padding: '8px 15px', backgroundColor: '#333', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}>ดูรายละเอียด</button>
+                
+                {/* ปุ่มสีเหลืองอักษรดำ */}
+                <button 
+                  onClick={() => navigate(`/product/${weapon.id}`)} 
+                  style={{ 
+                    padding: '8px 20px', 
+                    backgroundColor: '#ffc107', 
+                    color: 'black', 
+                    border: 'none', 
+                    cursor: 'pointer', 
+                    borderRadius: '50px',
+                    fontWeight: 'bold',
+                    boxShadow: '0 2px 10px rgba(255, 193, 7, 0.2)',
+                    transition: 'transform 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                  onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  ดูสินค้า
+                </button>
               </div>
             </div>
           ))
         ) : (
-          <div style={{ color: '#aaa', gridColumn: '1/-1', textAlign: 'center', padding: '50px' }}>
-            <h2>ไม่พบสินค้าที่ตรงตามเงื่อนไข</h2>
+          <div style={{ color: '#aaa', gridColumn: '1/-1', textAlign: 'center', padding: '50px', backgroundColor: '#1a1a1a', borderRadius: '12px', border: '1px dashed #444' }}>
+            <h2>🚫 ไม่พบสินค้าที่ตรงตามเงื่อนไข</h2>
+            <p>ลองปรับตัวกรอง หรือค้นหาด้วยคำอื่น</p>
           </div>
         )}
       </div>

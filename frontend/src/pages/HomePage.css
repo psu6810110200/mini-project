@@ -2,65 +2,128 @@
 
 .weapon-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* จัด Grid อัตโนมัติ */
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
   padding: 20px 0;
 }
 
 .weapon-card {
-  border: 1px solid #ddd;
+  background-color: #1a1a1a;
+  border: 1px solid #333;
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-  background-color: white;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
   position: relative;
   overflow: hidden;
+  color: white;
+  z-index: 1;
 }
 
+
+/* Hover: การ์ดลอยขึ้น + ขอบเปลี่ยนสีเหลือง */
 .weapon-card:hover {
-  transform: translateY(-5px); /* ลอยขึ้นเมื่อเอาเมาส์ชี้ */
-  box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+  border-color: #ffc107;
 }
 
-/* แถบสีด้านซ้ายของการ์ด เพื่อบอกประเภท */
+/* --- แถบสีด้านบน (::before) --- */
 .weapon-card::before {
   content: '';
   position: absolute;
-  left: 0;
   top: 0;
-  bottom: 0;
-  width: 6px;
+  left: 0;
+  right: 0;
+  height: 5px; /* ความหนาของแถบ */
+  
+  /* แสดงตลอดเวลา */
+  transform: scaleX(1); 
+  transform-origin: left;
+  
+  /* Transition: ให้เปลี่ยนสีนุ่มนวลถ้าทำได้ */
+  transition: background 0.3s ease-in-out;
+  z-index: 2;
 }
 
-/* แยกสีตาม Category */
-.card-light::before { background-color: #28a745; } /* สีเขียว */
-.card-light .badge { background-color: #e8f5e9; color: #2e7d32; }
+/* --- กำหนดสี Gradient (เข้ม -> พาสเทล) ตามประเภท --- */
 
-.card-heavy::before { background-color: #007bff; } /* สีน้ำเงิน */
-.card-heavy .badge { background-color: #e3f2fd; color: #1565c0; }
+/* Light (สีเขียว): เขียวเข้ม -> เขียวพาสเทล */
+.card-light::before {
+  background: linear-gradient(90deg, #1b5e20 0%, #81c784 100%);
+}
 
-.card-explosive::before { background-color: #dc3545; } /* สีแดง */
-.card-explosive .badge { background-color: #ffebee; color: #c62828; }
+/* Heavy (สีน้ำเงิน): น้ำเงินเข้ม -> น้ำเงินพาสเทล */
+.card-heavy::before {
+  background: linear-gradient(90deg, #0d47a1 0%, #64b5f6 100%);
+}
 
+/* Explosive (สีแดง): แดงเข้ม -> แดงพาสเทล */
+.card-explosive::before {
+  background: linear-gradient(90deg, #b71c1c 0%, #e57373 100%);
+}
+
+/* --- เมื่อ Hover แถบด้านบนเปลี่ยนเป็นสีเหลืองล้วน --- */
+.weapon-card:hover::before {
+  background: #ffc107 !important; /* ใช้ !important เพื่อทับ Gradient เดิม */
+}
+
+
+/* --- เอฟเฟกต์สเปรย์ (::after) - ซ่อนไว้ก่อน แสดงเมื่อ Hover --- */
+.weapon-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  opacity: 0; /* ซ่อน */
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+  z-index: -1;
+}
+
+.weapon-card:hover::after {
+  opacity: 1; /* แสดง */
+}
+
+/* สีสเปรย์ (ตามเดิม) */
+.card-light::after {
+  background: linear-gradient(to bottom, rgba(40, 167, 69, 0.25) 0%, rgba(40, 167, 69, 0) 40%);
+}
+.card-heavy::after {
+  background: linear-gradient(to bottom, rgba(0, 123, 255, 0.25) 0%, rgba(0, 123, 255, 0) 40%);
+}
+.card-explosive::after {
+  background: linear-gradient(to bottom, rgba(220, 53, 69, 0.25) 0%, rgba(220, 53, 69, 0) 40%);
+}
+
+/* --- Badge & Text Styles (คงเดิม) --- */
 .badge {
   display: inline-block;
   padding: 4px 8px;
   border-radius: 4px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: bold;
   text-transform: uppercase;
-  margin-bottom: 10px;
+  letter-spacing: 1px;
 }
 
+.card-light .badge { background-color: rgba(40, 167, 69, 0.2); color: #4caf50; border: 1px solid #4caf50; }
+.card-heavy .badge { background-color: rgba(0, 123, 255, 0.2); color: #4dabf5; border: 1px solid #4dabf5; }
+.card-explosive .badge { background-color: rgba(220, 53, 69, 0.2); color: #ef5350; border: 1px solid #ef5350; }
+
 .price {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: bold;
-  color: #333;
-  margin-top: 10px;
+  color: #ffc107;
+  margin-top: 5px;
 }
 
 .stock {
-  font-size: 0.9rem;
-  color: #666;
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 2px;
 }
+
+
