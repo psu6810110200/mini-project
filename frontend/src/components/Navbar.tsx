@@ -1,56 +1,68 @@
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useContext } from 'react';
+// src/components/Navbar.tsx
+import React, { useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { CartContext } from '../context/CartContext'; // ✅ 1. Import CartContext
 
 const Navbar = () => {
   const auth = useContext(AuthContext);
+  const cart = useContext(CartContext); // ✅ 2. ดึงข้อมูลตะกร้ามาใช้
   const navigate = useNavigate();
-  
-  // เรียกใช้ hook เพื่อเช็คหน้าปัจจุบัน
-  const location = useLocation();
 
-  const handleLogout = () => {
-    auth?.logout();
-    navigate('/login');
-  };
-
-  // สร้างตัวแปรเช็คว่า "ตอนนี้อยู่หน้า Login หรือ Register"
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+  if (!auth?.isAuthenticated) return null;
 
   return (
-    <nav className="navbar">
-      <div className="container navbar-container">
-        <Link to="/" className="navbar-brand">Gun Shop</Link>
+    <nav style={{ 
+      backgroundColor: 'black', 
+      padding: '15px 20px', 
+      display: 'flex', 
+      justifyContent: 'space-between', 
+      alignItems: 'center',
+      color: 'white',
+      borderBottom: '1px solid #333'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <Link to="/" style={{ color: '#ffc107', textDecoration: 'none', fontSize: '1.5rem', fontWeight: 'bold' }}>
+          Gun Shop
+        </Link>
+        
+        {auth.user?.role === 'admin' && (
+          <Link to="/admin" style={{ color: '#dc3545', textDecoration: 'none', fontWeight: 'bold' }}>
+            ⚙️ Admin Dashboard
+          </Link>
+        )}
+      </div>
 
-        <div className="navbar-menu">
-          {auth?.isAuthenticated && !isAuthPage ? (
-            // กรณี Login แล้ว และไม่อยู่หน้า Login
-            <>
-
-              {/* [เพิ่ม] แสดงลิงก์ Admin เฉพาะถ้าเป็น Admin */}
-              {auth.user?.role === 'admin' && (
-                <Link to="/admin" className="navbar-item" style={{ marginRight: '15px', fontWeight: 'bold', color: '#ff4d4d' }}>
-                  ⚙️ Admin Dashboard
-                </Link>
-              )}
-              
-              <span className="navbar-user">
-                สวัสดี, <strong>{auth.user?.username}</strong> ({auth.user?.role})
-              </span>
-              <button onClick={handleLogout} className="btn-logout">
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-               {!isAuthPage && ( <>
-                    <Link to="/login" className="navbar-item">Login</Link>
-                    <Link to="/register" className="navbar-item">Register</Link>
-                  </>
-               )}
-            </>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        
+        {/* ✅ 3. เพิ่มปุ่มตะกร้าสินค้าตรงนี้ */}
+        <Link to="/cart" style={{ textDecoration: 'none', color: 'white', display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <span style={{ fontSize: '1.2rem' }}>🛒</span>
+          <span>ตะกร้า</span>
+          {/* วงกลมแดงแจ้งเตือนจำนวนสินค้า */}
+          {cart && cart.totalItems > 0 && (
+            <span style={{ 
+              backgroundColor: '#dc3545', 
+              color: 'white', 
+              borderRadius: '50%', 
+              padding: '2px 8px', 
+              fontSize: '0.8rem', 
+              fontWeight: 'bold' 
+            }}>
+              {cart.totalItems}
+            </span>
           )}
-        </div>
+        </Link>
+
+        <div style={{ borderLeft: '1px solid #555', height: '25px', margin: '0 5px' }}></div>
+
+        <span>สวัสดี, <strong>{auth.user?.username}</strong></span>
+        <button 
+          onClick={auth.logout} 
+          style={{ backgroundColor: '#333', border: '1px solid #555', color: '#ccc', padding: '5px 10px', width: 'auto', fontSize: '0.8rem' }}
+        >
+          Logout
+        </button>
       </div>
     </nav>
   );

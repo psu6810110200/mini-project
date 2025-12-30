@@ -39,3 +39,6 @@ export interface Weapon {
   required_license_level: number;
   updated_at?: string;
 }
+export interface CartItem extends Weapon {
+  quantity: number;
+}

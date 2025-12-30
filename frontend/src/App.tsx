@@ -11,6 +11,8 @@ import Navbar from './components/Navbar'; // [เพิ่ม] import Navbar
 import AdminDashboard from './pages/AdminDashboard';
 import HomePage from './pages/HomePage';
 import ProductDetailPage from './pages/ProductDetailPage';
+import { CartProvider } from './context/CartContext'; // ✅ 1. Import มา
+import CartPage from './pages/CartPage'; // ✅ อย่าลืม import
 
 // สร้าง Component เพื่อป้องกันหน้า Home (ถ้ายังไม่ Login ให้เด้งไป Login)
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -41,33 +43,41 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <AuthProvider>
-      <Navbar />
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        
-        {/* หน้า Home */}
-        <Route path="/" element={
-          <ProtectedRoute>
-            <HomePage />
-          </ProtectedRoute>
-        } />
+      <CartProvider> 
+        <Navbar />
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          
+          {/* หน้า Home */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
+          } />
 
-        {/* ✅ เพิ่ม Route สำหรับหน้า Detail ตรงนี้ */}
-        <Route path="/product/:id" element={
-          <ProtectedRoute>
-            <ProductDetailPage />
-          </ProtectedRoute>
-        } />
+          {/* ✅ เพิ่ม Route สำหรับหน้า Detail ตรงนี้ */}
+          <Route path="/product/:id" element={
+            <ProtectedRoute>
+              <ProductDetailPage />
+            </ProtectedRoute>
+          } />
 
-        {/* หน้า Admin */}
-        <Route path="/admin" element={
-          <AdminRoute>
-            <AdminDashboard />
-          </AdminRoute>
-        } />
-      </Routes>
-      <ToastContainer position="top-right" autoClose={3000} />
+          {/* หน้า Admin */}
+          <Route path="/admin" element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          } />
+
+          <Route path="/cart" element={
+            <ProtectedRoute>
+              <CartPage />
+            </ProtectedRoute>
+          } />
+        </Routes>
+        <ToastContainer position="top-right" autoClose={3000} />
+      </CartProvider>
     </AuthProvider>
   );
 }

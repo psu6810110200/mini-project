@@ -4,11 +4,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { type Weapon } from '../types';
 import { AuthContext } from '../context/AuthContext';
+import { CartContext } from '../context/CartContext'; // ✅ 1. Import
 
 const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>(); 
   const navigate = useNavigate();
   const auth = useContext(AuthContext);
+  const { addToCart } = useContext(CartContext)!; // ✅ 2. เรียกใช้ addToCart
   
   const [weapon, setWeapon] = useState<Weapon | null>(null);
   const [loading, setLoading] = useState(true);
@@ -19,7 +21,7 @@ const ProductDetailPage = () => {
         const res = await api.get(`/weapons/${id}`);
         setWeapon(res.data);
       } catch (error) {
-        console.error('หาอาวุธไม่เจอ', error);
+        console.error('Error:', error);
         navigate('/'); 
       } finally {
         setLoading(false);
@@ -42,7 +44,6 @@ const ProductDetailPage = () => {
 
   return (
     <div className="container" style={{ marginTop: '40px', color: 'white' }}>
-      {/* ปุ่มย้อนกลับ (อยู่บนพื้นดำเหมือนเดิม) */}
       <button 
         onClick={() => navigate(-1)} 
         style={{ marginBottom: '20px', background: 'transparent', border: '1px solid #666', color: '#ccc', width: 'auto', padding: '5px 15px', cursor: 'pointer' }}
@@ -51,21 +52,18 @@ const ProductDetailPage = () => {
       </button>
 
       <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
-        
-        {/* กล่องซ้าย: รูปสินค้า (พื้นดำเหมือนเดิม ให้เด่นขึ้นมา) */}
         <div style={{ flex: '1', minWidth: '300px', backgroundColor: '#111', height: '450px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px', border: `2px solid ${getBadgeColor(weapon.category)}` }}>
            <h2 style={{ color: '#555' }}>[ WEAPON IMAGE ]</h2>
         </div>
 
-        {/* ✅ กล่องขวา: รายละเอียด (ใส่พื้นขาวตามที่ขอ) */}
         <div style={{ 
             flex: '1', 
             minWidth: '300px',
-            backgroundColor: 'white', // พื้นขาว
-            padding: '30px',          // เว้นระยะขอบ
-            borderRadius: '12px',     // มุมโค้ง
-            color: '#333',            // ตัวหนังสือสีดำ
-            boxShadow: '0 4px 15px rgba(0,0,0,0.5)' // เงาเล็กน้อยให้ดูลอยเด่น
+            backgroundColor: 'white', 
+            padding: '30px',          
+            borderRadius: '12px',     
+            color: '#333',            
+            boxShadow: '0 4px 15px rgba(0,0,0,0.5)' 
         }}>
           <span style={{ backgroundColor: getBadgeColor(weapon.category), color: 'white', padding: '5px 10px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
             {weapon.category}
@@ -74,7 +72,6 @@ const ProductDetailPage = () => {
           <h1 style={{ fontSize: '2.5rem', margin: '15px 0', color: 'black' }}>{weapon.name}</h1>
           <p style={{ color: '#555', lineHeight: '1.6', fontSize: '1.1rem' }}>{weapon.description}</p>
           
-          {/* เส้นขีดคั่นเปลี่ยนเป็นสีเทาอ่อน */}
           <div style={{ margin: '30px 0', borderTop: '1px solid #eee', borderBottom: '1px solid #eee', padding: '20px 0' }}>
             <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#333' }}>
               ฿{weapon.price.toLocaleString()}
@@ -88,9 +85,10 @@ const ProductDetailPage = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '15px' }}>
+            {/* ✅ 3. ปุ่มกดแล้วเรียก addToCart */}
             <button 
               disabled={weapon.stock === 0}
-              onClick={() => alert(`คุณต้องการซื้อ ${weapon.name} ใช่ไหม?`)}
+              onClick={() => addToCart(weapon)} 
               style={{ 
                 backgroundColor: weapon.stock > 0 ? '#007bff' : '#ccc', 
                 color: 'white',
@@ -99,19 +97,21 @@ const ProductDetailPage = () => {
                 border: 'none',
                 borderRadius: '6px',
                 cursor: weapon.stock > 0 ? 'pointer' : 'not-allowed',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
               }}
             >
-              {weapon.stock > 0 ? '🛒 สั่งซื้อทันที' : 'สินค้าหมด'}
+              🛒 {weapon.stock > 0 ? 'เพิ่มลงตะกร้า' : 'สินค้าหมด'}
             </button>
             
-            {/* ปุ่ม Admin */}
             {auth?.user?.role === 'admin' && (
                <button 
                  onClick={() => navigate('/admin')}
                  style={{ backgroundColor: '#ffc107', color: 'black', width: 'auto', border: 'none', padding: '12px 20px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
                >
-                 ⚙️ แก้ไขสินค้า
+                 ⚙️ แก้ไข
                </button>
             )}
           </div>
