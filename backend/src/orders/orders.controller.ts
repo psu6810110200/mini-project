@@ -1,15 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
+  @UseGuards(JwtAuthGuard) // ✅ 1. ต้อง Login ก่อน
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.ordersService.create(createOrderDto);
+  create(@Request() req, @Body() createOrderDto: CreateOrderDto) {
+    // ✅ 2. ส่ง req.user (คนซื้อ) ไปด้วย
+    return this.ordersService.create(createOrderDto, req.user);
   }
 
   @Get()

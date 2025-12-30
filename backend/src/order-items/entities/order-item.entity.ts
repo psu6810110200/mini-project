@@ -1,4 +1,3 @@
-// backend/src/order-items/entities/order-item.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Order } from '../../orders/entities/order.entity';
 import { Weapon } from '../../weapons/entities/weapon.entity';
@@ -11,15 +10,16 @@ export class OrderItem {
   @Column('int')
   quantity: number;
 
-  @Column('decimal', { precision: 10, scale: 2 })
-  price_at_purchase: number; // ราคา ณ ตอนที่ซื้อ (สำคัญมาก เผื่อราคาเปลี่ยนทีหลัง)
+  // บันทึกราคา ณ ตอนที่ซื้อ (ป้องกันปืนเปลี่ยนราคาในอนาคตแล้วกระทบออเดอร์เก่า)
+  @Column('decimal', { precision: 10, scale: 2, name: 'price_at_purchase' })
+  price_at_purchase: number;
 
-  // เชื่อมกับ Order (บิลใบไหน)
-  @ManyToOne(() => Order, (order) => order.order_items)
+  // Relation ไปหา Order
+  @ManyToOne(() => Order, (order) => order.order_items, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'order_id' })
   order: Order;
 
-  // เชื่อมกับ Weapon (สินค้าตัวไหน)
+  // Relation ไปหา Weapon
   @ManyToOne(() => Weapon)
   @JoinColumn({ name: 'weapon_id' })
   weapon: Weapon;
