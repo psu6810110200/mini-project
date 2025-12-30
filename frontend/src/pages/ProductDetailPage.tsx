@@ -4,13 +4,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { type Weapon } from '../types';
 import { AuthContext } from '../context/AuthContext';
-import { CartContext } from '../context/CartContext'; // ✅ 1. Import
+import { CartContext } from '../context/CartContext';
 
 const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>(); 
   const navigate = useNavigate();
   const auth = useContext(AuthContext);
-  const { addToCart } = useContext(CartContext)!; // ✅ 2. เรียกใช้ addToCart
+  const { addToCart } = useContext(CartContext)!;
   
   const [weapon, setWeapon] = useState<Weapon | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,8 +52,27 @@ const ProductDetailPage = () => {
       </button>
 
       <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
-        <div style={{ flex: '1', minWidth: '300px', backgroundColor: '#111', height: '450px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px', border: `2px solid ${getBadgeColor(weapon.category)}` }}>
-           <h2 style={{ color: '#555' }}>[ WEAPON IMAGE ]</h2>
+        {/* แก้ไขส่วนการแสดงรูปภาพตรงนี้ */}
+        <div style={{ 
+          flex: '1', 
+          minWidth: '300px', 
+          backgroundColor: '#111', 
+          height: '450px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          borderRadius: '12px', 
+          border: `2px solid ${getBadgeColor(weapon.category)}`,
+          overflow: 'hidden' 
+        }}>
+           <img 
+             src={weapon.image || "https://placehold.co/600x450?text=No+Image"} 
+             alt={weapon.name}
+             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+             onError={(e) => {
+               (e.target as HTMLImageElement).src = "https://placehold.co/600x450?text=Image+Error";
+             }}
+           />
         </div>
 
         <div style={{ 
@@ -85,7 +104,6 @@ const ProductDetailPage = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '15px' }}>
-            {/* ✅ 3. ปุ่มกดแล้วเรียก addToCart */}
             <button 
               disabled={weapon.stock === 0}
               onClick={() => addToCart(weapon)} 

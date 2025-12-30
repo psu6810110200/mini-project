@@ -3,7 +3,7 @@ import React, { useContext, useState } from 'react';
 import { CartContext } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { toast } from 'react-toastify'; // ✅ 1. เพิ่มบรรทัดนี้
+import { toast } from 'react-toastify';
 
 const CartPage = () => {
   const { items, removeFromCart, addToCart, decreaseQuantity, totalPrice, clearCart } = useContext(CartContext)!;
@@ -14,7 +14,7 @@ const CartPage = () => {
     const token = localStorage.getItem('token'); 
 
     if (!token) {
-      toast.error('กรุณาเข้าสู่ระบบก่อนทำการสั่งซื้อ'); // แจ้งเตือนถ้ายังไม่ Login
+      toast.error('กรุณาเข้าสู่ระบบก่อนทำการสั่งซื้อ');
       return;
     }
 
@@ -33,34 +33,16 @@ const CartPage = () => {
       });
 
       if (response.status === 201) {
-        // ✅ 2. ขึ้นข้อความแจ้งเตือน "ชำระเงินสำเร็จ" ตรงนี้
         toast.success('ชำระเงินสำเร็จ !', {
           position: "top-right",
           autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
         });
-
-        clearCart(); 
-        
-        // รอแป๊บนึงค่อยเปลี่ยนหน้าเพื่อให้เห็น Toast หรือจะเปลี่ยนเลยก็ได้ (Toast ของ library นี้มันค้างข้ามหน้าได้)
-        setTimeout(() => {
-            navigate('/success', { 
-            state: { 
-                orderId: response.data.orderId,
-                totalPrice: totalPrice 
-            } 
-            });
-        }, 1000); // หน่วงเวลา 1 วินาที ให้เห็นข้อความก่อนไป
+        clearCart();
+        navigate('/'); 
       }
-
     } catch (error: any) {
       console.error('Checkout Error:', error);
-      const message = error.response?.data?.message || 'เกิดข้อผิดพลาดในการสั่งซื้อ';
-      toast.error(message); // แจ้งเตือน Error เป็นสีแดง
+      toast.error(error.response?.data?.message || 'เกิดข้อผิดพลาดในการชำระเงิน');
     } finally {
       setLoading(false);
     }
@@ -68,13 +50,9 @@ const CartPage = () => {
 
   if (items.length === 0) {
     return (
-      <div className="container" style={{ color: 'white', textAlign: 'center', marginTop: '100px' }}>
-        <h1>🛒 ตะกร้าว่างเปล่า</h1>
-        <p style={{ color: '#aaa' }}>ยังไม่มีสินค้าในตะกร้าเลย ไปช้อปกันเถอะ!</p>
-        <button 
-          onClick={() => navigate('/')} 
-          style={{ marginTop: '20px', backgroundColor: '#ffc107', color: 'black', width: 'auto', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-        >
+      <div className="container" style={{ textAlign: 'center', marginTop: '100px', color: 'white' }}>
+        <h2>🛒 ตะกร้าสินค้าของคุณว่างเปล่า</h2>
+        <button onClick={() => navigate('/')} style={{ marginTop: '20px', padding: '10px 20px', cursor: 'pointer' }}>
           ไปเลือกซื้อสินค้า
         </button>
       </div>
@@ -83,12 +61,11 @@ const CartPage = () => {
 
   return (
     <div className="container" style={{ marginTop: '40px', color: 'white' }}>
-      <h1>🛒 ตะกร้าสินค้าของคุณ</h1>
-      
-      <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap', marginTop: '20px' }}>
-        
-        {/* รายการสินค้า */}
-        <div style={{ flex: '2', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+      <h1 style={{ marginBottom: '30px' }}>ตะกร้าสินค้าของคุณ</h1>
+
+      <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap' }}>
+        {/* รายการสินค้าในตะกร้า */}
+        <div style={{ flex: '2', minWidth: '400px' }}>
           {items.map((item) => (
             <div key={item.id} style={{ 
               backgroundColor: '#1a1a1a', 
@@ -97,35 +74,50 @@ const CartPage = () => {
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'space-between',
+              marginBottom: '15px',
               border: '1px solid #333'
             }}>
               
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <div style={{ width: '60px', height: '60px', backgroundColor: '#333', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
-                  🔫
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                {/* แก้ไขส่วนรูปภาพ: เปลี่ยนจาก Emoji เป็น Tag <img> */}
+                <div style={{ 
+                  width: '80px', 
+                  height: '80px', 
+                  backgroundColor: '#333', 
+                  borderRadius: '8px', 
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <img 
+                    src={item.image || "https://placehold.co/100x100?text=No+Img"} 
+                    alt={item.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "https://placehold.co/100x100?text=Error";
+                    }}
+                  />
                 </div>
+
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{item.name}</h3>
-                  <div style={{ color: '#aaa', fontSize: '0.9rem' }}>฿{item.price.toLocaleString()}</div>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{item.name}</h3>
+                  <div style={{ color: '#007bff', fontWeight: 'bold', marginTop: '5px' }}>
+                    ฿{item.price.toLocaleString()}
+                  </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', backgroundColor: 'black', borderRadius: '4px', border: '1px solid #444' }}>
-                  <button 
-                    onClick={() => decreaseQuantity(item.id)}
-                    style={{ background: 'transparent', color: 'white', padding: '5px 10px', width: 'auto', border: 'none', cursor: 'pointer' }}
-                  >-</button>
-                  <span style={{ padding: '0 10px', fontWeight: 'bold' }}>{item.quantity}</span>
-                  <button 
-                    onClick={() => addToCart(item)}
-                    style={{ background: 'transparent', color: 'white', padding: '5px 10px', width: 'auto', border: 'none', cursor: 'pointer' }}
-                  >+</button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#333', borderRadius: '5px' }}>
+                  <button onClick={() => decreaseQuantity(item.id)} style={{ background: 'none', border: 'none', color: 'white', padding: '5px 12px', cursor: 'pointer' }}>-</button>
+                  <span style={{ padding: '0 10px' }}>{item.quantity}</span>
+                  <button onClick={() => addToCart(item)} style={{ background: 'none', border: 'none', color: 'white', padding: '5px 12px', cursor: 'pointer' }}>+</button>
                 </div>
-
+                
                 <button 
                   onClick={() => removeFromCart(item.id)}
-                  style={{ backgroundColor: '#dc3545', color: 'white', width: 'auto', padding: '8px 12px', fontSize: '0.9rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  style={{ backgroundColor: 'transparent', color: '#ff4d4d', border: '1px solid #ff4d4d', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer' }}
                 >
                   ลบ
                 </button>
@@ -134,18 +126,22 @@ const CartPage = () => {
           ))}
         </div>
 
-        {/* สรุปยอดเงิน */}
+        {/* ส่วนสรุปราคารวม */}
         <div style={{ flex: '1', minWidth: '300px' }}>
-          <div style={{ backgroundColor: 'white', color: 'black', padding: '25px', borderRadius: '12px', position: 'sticky', top: '20px' }}>
-            <h3>สรุปรายการสั่งซื้อ</h3>
+          <div style={{ backgroundColor: 'white', color: 'black', padding: '25px', borderRadius: '12px', position: 'sticky', top: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }}>
+            <h3 style={{ marginTop: 0 }}>สรุปรายการสั่งซื้อ</h3>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <span>ยอดรวม ({items.length} รายการ)</span>
+              <span>จำนวนสินค้า</span>
+              <span>{items.reduce((acc, item) => acc + item.quantity, 0)} ชิ้น</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <span>ยอดรวม</span>
               <span>฿{totalPrice.toLocaleString()}</span>
             </div>
             <hr style={{ borderColor: '#eee' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.5rem', fontWeight: 'bold', margin: '20px 0' }}>
               <span>ยอดสุทธิ</span>
-              <span style={{ color: '#007bff' }}>฿{totalPrice.toLocaleString()}</span>
+              <span style={{ color: '#28a745' }}>฿{totalPrice.toLocaleString()}</span>
             </div>
             
             <button 
@@ -160,10 +156,10 @@ const CartPage = () => {
                 border: 'none',
                 borderRadius: '8px',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                transition: 'background-color 0.2s'
+                fontWeight: 'bold'
               }}
             >
-              {loading ? 'กำลังดำเนินการ...' : 'ดำเนินการชำระเงิน'}
+              {loading ? 'กำลังดำเนินการ...' : 'ยืนยันการสั่งซื้อ'}
             </button>
           </div>
         </div>
