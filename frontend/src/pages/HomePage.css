@@ -1,5 +1,22 @@
 /* src/pages/HomePage.css */
 
+:root {
+  --primary: #ffc107;       /* สีเหลืองทอง (Base) */
+  --bg-dark: #121212;       /* พื้นหลังหลัก */
+  --bg-panel: #1e1e1e;      /* พื้นหลังแผงควบคุม */
+  --bg-input: #000000;      /* พื้นหลังช่องกรอก */
+  --text-main: #ffffff;
+  --text-muted: #888888;
+  --border-color: #333333;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+}
+
 .weapon-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -7,6 +24,207 @@
   padding: 20px 0;
 }
 
+/* --- Filter Panel Design (Tactical HUD Style) --- */
+.filter-panel {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-left: 5px solid var(--primary); /* แถบสีด้านซ้าย */
+  border-radius: 4px;
+  padding: 25px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  position: relative;
+}
+
+/* เส้นตกแต่งด้านบนขวา */
+.filter-panel::after {
+  content: "SYSTEM: ONLINE";
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-family: monospace;
+  font-size: 0.7rem;
+  color: var(--primary);
+  opacity: 0.5;
+  letter-spacing: 2px;
+}
+
+/* แถวบน: Search + Categories */
+.filter-row-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #2a2a2a;
+  padding-bottom: 25px;
+}
+
+/* Search Box Design */
+.search-box {
+  flex: 1;
+  min-width: 280px;
+  position: relative;
+}
+.search-box input {
+  width: 100%;
+  padding: 14px 15px 14px 45px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--primary);
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+.search-box input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 15px rgba(255, 193, 7, 0.1);
+}
+.search-box::before {
+  content: '🔍';
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  opacity: 0.7;
+  filter: grayscale(100%);
+}
+
+/* Category Buttons (Tabs) */
+.category-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cat-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 2px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.cat-btn:hover {
+  border-color: var(--text-main);
+  color: var(--text-main);
+}
+.cat-btn.active {
+  background-color: var(--primary);
+  color: #000;
+  border-color: var(--primary);
+  box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
+  font-weight: 900;
+}
+
+/* แถวล่าง: Filters ย่อย */
+.filter-row-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filter-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.filter-label::before {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  background-color: var(--primary);
+  border-radius: 50%;
+}
+
+/* Custom Select & Inputs */
+.styled-input {
+  background-color: #2a2a2a;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 10px 15px;
+  border-radius: 4px;
+  outline: none;
+  min-width: 160px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+.styled-input:focus {
+  border-color: var(--primary);
+}
+
+.price-inputs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.price-field {
+  width: 100px;
+  text-align: center;
+}
+.price-separator {
+  color: var(--text-muted);
+  font-weight: bold;
+}
+
+/* Reset Button */
+.reset-btn {
+  margin-left: auto;
+  padding: 10px 25px;
+  background-color: transparent;
+  color: #ff4444;
+  border: 1px solid #ff4444;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: 0.2s;
+  text-transform: uppercase;
+}
+.reset-btn:hover {
+  background-color: #ff4444;
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .filter-row-top, .filter-row-bottom {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+  }
+  .reset-btn {
+    margin-left: 0;
+    text-align: center;
+  }
+}
+
+/* --- Weapon Card Styles --- */
 .weapon-card {
   background-color: #1a1a1a;
   border: 1px solid #333;
@@ -20,12 +238,11 @@
   z-index: 1;
 }
 
-
 /* Hover: การ์ดลอยขึ้น + ขอบเปลี่ยนสีเหลือง */
 .weapon-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-  border-color: #ffc107;
+  border-color: var(--primary);
 }
 
 /* --- แถบสีด้านบน (::before) --- */
@@ -37,25 +254,21 @@
   right: 0;
   height: 5px; /* ความหนาของแถบ */
   
-  /* แสดงตลอดเวลา */
   transform: scaleX(1); 
   transform-origin: left;
-  
-  /* Transition: ให้เปลี่ยนสีนุ่มนวลถ้าทำได้ */
   transition: background 0.3s ease-in-out;
   z-index: 2;
 }
-
-/* --- กำหนดสี Gradient (เข้ม -> พาสเทล) ตามประเภท --- */
 
 /* Light (สีเขียว): เขียวเข้ม -> เขียวพาสเทล */
 .card-light::before {
   background: linear-gradient(90deg, #1b5e20 0%, #81c784 100%);
 }
 
-/* Heavy (สีน้ำเงิน): น้ำเงินเข้ม -> น้ำเงินพาสเทล */
+/* ✅ Heavy (แก้ไขจากสีน้ำเงิน -> สีเหลืองเข้ม/ทองแดง): ไล่จากเข้มมาก -> อ่อนลงนิดหน่อย */
 .card-heavy::before {
-  background: linear-gradient(90deg, #0d47a1 0%, #64b5f6 100%);
+  /* เดิมเป็นน้ำเงิน #0d47a1 -> #64b5f6 */
+  background: linear-gradient(90deg, #0d47a1 0%, #64b5f6 100%); 
 }
 
 /* Explosive (สีแดง): แดงเข้ม -> แดงพาสเทล */
@@ -63,13 +276,12 @@
   background: linear-gradient(90deg, #b71c1c 0%, #e57373 100%);
 }
 
-/* --- เมื่อ Hover แถบด้านบนเปลี่ยนเป็นสีเหลืองล้วน --- */
+/* --- เมื่อ Hover แถบด้านบนเปลี่ยนเป็นสีเหลืองหลัก (Base Color) --- */
 .weapon-card:hover::before {
-  background: #ffc107 !important; /* ใช้ !important เพื่อทับ Gradient เดิม */
+  background: var(--primary) !important;
 }
 
-
-/* --- เอฟเฟกต์สเปรย์ (::after) - ซ่อนไว้ก่อน แสดงเมื่อ Hover --- */
+/* --- เอฟเฟกต์สเปรย์ (::after) --- */
 .weapon-card::after {
   content: '';
   position: absolute;
@@ -83,37 +295,43 @@
   z-index: -1;
 }
 
-.whitelist-btn {
-  position: right;
-  top: 15px;
-  right: 15px;
-  background: transparent;
-  border: none;
-  font-size: 1.8rem; /* ขนาดดาว */
-  color: #ffc107;    /* สีเหลืองทอง */
-  cursor: pointer;
-  z-index: 10;       /* ลอยเหนือทุกอย่าง */
-  padding: 0;
-  line-height: 1;
-  transition: transform 0.2s;
-  text-shadow: 0 2px 5px rgba(0,0,0,0.2); /* เพิ่มเงาให้ดาวเด่นขึ้น */
-}
 .weapon-card:hover::after {
   opacity: 1; /* แสดง */
 }
 
-/* สีสเปรย์ (ตามเดิม) */
+/* สีสเปรย์ Light (เขียว) */
 .card-light::after {
   background: linear-gradient(to bottom, rgba(40, 167, 69, 0.25) 0%, rgba(40, 167, 69, 0) 40%);
 }
+
+/* ✅ สีสเปรย์ Heavy (แก้ไขจากน้ำเงิน -> เหลืองเข้ม) */
 .card-heavy::after {
-  background: linear-gradient(to bottom, rgba(0, 123, 255, 0.25) 0%, rgba(0, 123, 255, 0) 40%);
+  /* เดิมเป็นน้ำเงิน rgba(0, 123, 255...) */
+  background: linear-gradient(to bottom, rgba(255, 143, 0, 0.25) 0%, rgba(255, 143, 0, 0) 40%);
 }
+
+/* สีสเปรย์ Explosive (แดง) */
 .card-explosive::after {
   background: linear-gradient(to bottom, rgba(220, 53, 69, 0.25) 0%, rgba(220, 53, 69, 0) 40%);
 }
 
-/* --- Badge & Text Styles (คงเดิม) --- */
+.whitelist-btn {
+  position: absolute; /* แก้ไขจาก right เป็น absolute เพื่อความถูกต้อง */
+  top: 15px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  font-size: 1.8rem;
+  color: var(--primary);
+  cursor: pointer;
+  z-index: 10;
+  padding: 0;
+  line-height: 1;
+  transition: transform 0.2s;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* --- Badge & Text Styles --- */
 .badge {
   display: inline-block;
   padding: 4px 8px;
@@ -124,14 +342,20 @@
   letter-spacing: 1px;
 }
 
+/* Badge Light (เขียว) */
 .card-light .badge { background-color: rgba(40, 167, 69, 0.2); color: #4caf50; border: 1px solid #4caf50; }
-.card-heavy .badge { background-color: rgba(0, 123, 255, 0.2); color: #4dabf5; border: 1px solid #4dabf5; }
+
+/* ✅ Badge Heavy (แก้ไขจากน้ำเงิน -> เหลืองเข้ม) */
+.card-heavy .badge { 
+ background-color: rgba(40, 167, 69, 0.2); color: #2980b9; border: 1px solid #2980b9; }
+
+/* Badge Explosive (แดง) */
 .card-explosive .badge { background-color: rgba(220, 53, 69, 0.2); color: #ef5350; border: 1px solid #ef5350; }
 
 .price {
   font-size: 1.4rem;
   font-weight: bold;
-  color: #ffc107;
+  color: var(--primary);
   margin-top: 5px;
 }
 
@@ -141,4 +365,108 @@
   margin-top: 2px;
 }
 
+/* --- Pagination (Rounded Card) --- */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 50px;
+  margin-bottom: 30px;
+}
 
+.pagination-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+  background-color: var(--bg-panel);
+  padding: 10px 25px;
+  border-radius: 50px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+}
+
+.page-btn {
+  background-color: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background-color: var(--primary);
+  color: black;
+  border-color: var(--primary);
+}
+
+.page-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.page-info {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: monospace;
+}
+
+.current-page {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.total-pages {
+  font-size: 1rem;
+  color: var(--text-muted);
+  font-weight: bold;
+}
+
+/* --- Category Buttons Active State --- */
+
+/* ALL: สีเหลือง */
+.cat-btn.active-all {
+    background-color: #ffc107 !important;
+    color: black !important;
+    border-color: #ffc107 !important;
+}
+
+/* LIGHT: สีเขียว */
+.cat-btn.active-light {
+    background-color: #2ecc71 !important;
+    color: white !important;
+    border-color: #27ae60 !important;
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.4);
+}
+
+/* HEAVY: สีฟ้า */
+.cat-btn.active-heavy {
+    background-color: #3498db !important;
+    color: white !important;
+    border-color: #2980b9 !important;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.4);
+}
+
+/* EXPLOSIVE: สีแดง */
+.cat-btn.active-explosive {
+    background-color: #e74c3c !important;
+    color: white !important;
+    border-color: #c0392b !important;
+    box-shadow: 0 0 10px rgba(231, 76, 60, 0.4);
+}
+
+/* เพิ่มเติม: ปรับสไตล์พื้นฐานปุ่ม Badge */
+.badge {
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}

@@ -1,7 +1,6 @@
-// src/pages/HomePage.tsx
 import React, { useEffect, useState } from 'react';
 import { getWeapons, type WeaponsResponse } from '../api/weaponApi';
-import { type Weapon, WeaponCategory } from '../types'; // Import Enum มาใช้
+import { type Weapon, WeaponCategory } from '../types'; 
 import './HomePage.css'; 
 import { useNavigate } from 'react-router-dom';
 
@@ -17,19 +16,19 @@ const HomePage = () => {
 
   // Filter State
   const [searchTerm, setSearchTerm] = useState<string>(''); 
-  const [selectedCategory, setSelectedCategory] = useState<string>('ALL'); // ค่าที่จะส่งไป Backend (ต้องเป็นตัวเล็ก)
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   
   const [priceSort, setPriceSort] = useState<string>('default');
   const [minPrice, setMinPrice] = useState<number>(0);
   const [maxPrice, setMaxPrice] = useState<number>(1000000);
   const [requiredLicense, setRequiredLicense] = useState<number>(0);
 
-  // กำหนดตัวเลือกหมวดหมู่ (Label คือสิ่งที่โชว์, Value คือค่าจริงที่ส่งไป Backend)
+  // กำหนดปุ่มและ Class ตามสีที่ต้องการ
   const categoryOptions = [
-    { label: 'ALL', value: 'ALL' },
-    { label: 'LIGHT', value: WeaponCategory.LIGHT },       // value = 'light'
-    { label: 'HEAVY', value: WeaponCategory.HEAVY },       // value = 'heavy'
-    { label: 'EXPLOSIVE', value: WeaponCategory.EXPLOSIVE } // value = 'explosive'
+    { label: 'ALL CLASS', value: 'ALL', activeClass: 'active-all' },
+    { label: 'LIGHT', value: WeaponCategory.LIGHT, activeClass: 'active-light' },
+    { label: 'HEAVY', value: WeaponCategory.HEAVY, activeClass: 'active-heavy' },
+    { label: 'EXPLOSIVE', value: WeaponCategory.EXPLOSIVE, activeClass: 'active-explosive' }
   ];
 
   const fetchWeapons = async () => {
@@ -39,7 +38,7 @@ const HomePage = () => {
         page,
         limit: LIMIT,
         search: searchTerm || undefined,
-        category: selectedCategory === 'ALL' ? undefined : selectedCategory, // ส่งค่า value (light/heavy/explosive)
+        category: selectedCategory === 'ALL' ? undefined : selectedCategory,
         minPrice: minPrice,
         maxPrice: maxPrice,
         licenseLevel: requiredLicense,
@@ -64,7 +63,6 @@ const HomePage = () => {
 
   useEffect(() => {
     fetchWeapons();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, selectedCategory, priceSort, requiredLicense]); 
 
   useEffect(() => {
@@ -73,13 +71,22 @@ const HomePage = () => {
       fetchWeapons();
     }, 500);
     return () => clearTimeout(delaySearch);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, minPrice, maxPrice]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setPage(newPage);
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // ฟังก์ชันกำหนดสี Badge ในตัวการ์ดสินค้า
+  const getBadgeStyle = (category: WeaponCategory) => {
+    switch (category) {
+      case WeaponCategory.LIGHT: return { backgroundColor: '#2ecc71', color: '#fff' }; // เขียว
+      case WeaponCategory.HEAVY: return { backgroundColor: '#3498db', color: '#fff' }; // ฟ้า
+      case WeaponCategory.EXPLOSIVE: return { backgroundColor: '#e74c3c', color: '#fff' }; // แดง
+      default: return { backgroundColor: '#333', color: '#fff' };
     }
   };
 
@@ -104,108 +111,97 @@ const HomePage = () => {
 
   return (
     <div className="container">
-      <div style={{ color: '#ffc107', marginBottom: '20px', textShadow: '0 0 10px rgba(255, 193, 7, 0.3)' }}>
-        <h1>คลังแสง</h1>
+      
+      {/* Header */}
+      <div style={{ marginBottom: '30px', borderBottom: '1px solid #333', paddingBottom: '15px' }}>
+        <h1 style={{ color: '#ffc107', margin: 0, textTransform: 'uppercase', letterSpacing: '2px', fontSize: '2.5rem' }}>
+          ARMORY <span style={{ color: '#fff', fontSize: '1rem', verticalAlign: 'middle', marginLeft: '10px', opacity: 0.6 }}>// CLASSIFIED ACCESS</span>
+        </h1>
       </div>
 
-      {/* --- Filter & Search Bar --- */}
-      <div style={{ 
-        backgroundColor: '#1a1a1a', 
-        padding: '25px', 
-        borderRadius: '12px', 
-        marginBottom: '30px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px',
-        border: '1px solid #333',
-        boxShadow: '0 4px 15px rgba(0,0,0,0.5)'
-      }}>
-        
-        {/* Search */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label style={{ color: '#ffc107', fontSize: '0.9rem', fontWeight: 'bold' }}>ค้นหาอาวุธ</label>
-          <input 
-            type="text"
-            placeholder="ชื่อปืน หรือ สเปก..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ padding: '12px', borderRadius: '8px', backgroundColor: '#2a2a2a', color: 'white', border: '1px solid #444', outline: 'none' }}
-          />
-        </div>
-
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', alignItems: 'flex-end' }}>
-          {/* Categories (แก้ไขส่วนนี้) */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ color: '#ffc107', fontSize: '0.85rem', fontWeight: 'bold' }}>ประเภท</label>
-            <div style={{ display: 'flex', gap: '5px' }}>
-              {categoryOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => { setSelectedCategory(option.value); setPage(1); }}
-                  style={{
-                    padding: '8px 15px', borderRadius: '20px', 
-                    border: selectedCategory === option.value ? 'none' : '1px solid #444', 
-                    cursor: 'pointer',
-                    backgroundColor: selectedCategory === option.value ? '#ffc107' : 'transparent',
-                    color: selectedCategory === option.value ? '#000' : '#aaa',
-                    fontSize: '0.8rem', fontWeight: 'bold',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
+      {/* --- Filter Panel --- */}
+      <div className="filter-panel">
+        <div className="filter-row-top">
+          <div className="search-box">
+            <input 
+              type="text"
+              placeholder="SEARCH WEAPON DATABASE..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
 
-          {/* License Level */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ color: '#ffc107', fontSize: '0.85rem', fontWeight: 'bold' }}>License Level</label>
+          <div className="category-group">
+            {categoryOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => { setSelectedCategory(option.value); setPage(1); }}
+                className={`cat-btn ${selectedCategory === option.value ? option.activeClass : ''}`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="filter-row-bottom">
+          <div className="filter-group">
+            <label className="filter-label">LICENSE REQUIRED</label>
             <select 
               value={requiredLicense}
               onChange={(e) => { setRequiredLicense(Number(e.target.value)); setPage(1); }}
-              style={{ padding: '8px', borderRadius: '6px', backgroundColor: '#2a2a2a', color: 'white', border: '1px solid #444', cursor: 'pointer' }}
+              className="styled-input"
             >
-              <option value={0}>ทั้งหมด</option>
-              <option value={1}>Level 1</option>
-              <option value={2}>Level 2</option>
-              <option value={3}>Level 3</option>
-              <option value={4}>Level 4</option>
-              <option value={5}>Level 5</option>
+              <option value={0}>-- ALL LEVELS --</option>
+              <option value={1}>LV.1 CIVILIAN</option>
+              <option value={2}>LV.2 LAW ENFORCEMENT</option>
+              <option value={3}>LV.3 MILITARY</option>
+              <option value={4}>LV.4 SPECIAL OPS</option>
+              <option value={5}>LV.5 BLACK MARKET</option>
             </select>
           </div>
 
-          {/* Price Range */}
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ color: '#ffc107', fontSize: '0.85rem', fontWeight: 'bold' }}>ราคาต่ำสุด</label>
-              <input type="number" value={minPrice} onChange={(e) => setMinPrice(Number(e.target.value))} style={{ width: '100px', padding: '8px', borderRadius: '6px', backgroundColor: '#2a2a2a', color: 'white', border: '1px solid #444' }} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ color: '#ffc107', fontSize: '0.85rem', fontWeight: 'bold' }}>ราคาสูงสุด</label>
-              <input type="number" value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} style={{ width: '100px', padding: '8px', borderRadius: '6px', backgroundColor: '#2a2a2a', color: 'white', border: '1px solid #444' }} />
+          <div className="filter-group">
+            <label className="filter-label">PRICE RANGE</label>
+            <div className="price-inputs">
+              <input 
+                type="number" 
+                className="styled-input price-field"
+                value={minPrice} 
+                onChange={(e) => setMinPrice(Number(e.target.value))} 
+                placeholder="MIN"
+              />
+              <span className="price-separator">-</span>
+              <input 
+                type="number" 
+                className="styled-input price-field"
+                value={maxPrice} 
+                onChange={(e) => setMaxPrice(Number(e.target.value))} 
+                placeholder="MAX"
+              />
             </div>
           </div>
 
-          {/* Sort */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ color: '#ffc107', fontSize: '0.85rem', fontWeight: 'bold' }}>เรียงลำดับ</label>
-            <select value={priceSort} onChange={(e) => { setPriceSort(e.target.value); setPage(1); }} style={{ padding: '8px', borderRadius: '6px', backgroundColor: '#2a2a2a', color: 'white', border: '1px solid #444' }}>
-              <option value="default">ค่าเริ่มต้น</option>
-              <option value="low-to-high">ราคา: น้อยไปมาก</option>
-              <option value="high-to-low">ราคา: มากไปน้อย</option>
+          <div className="filter-group">
+            <label className="filter-label">SORT BY</label>
+            <select 
+              value={priceSort} 
+              onChange={(e) => { setPriceSort(e.target.value); setPage(1); }}
+              className="styled-input"
+            >
+              <option value="default">DEFAULT</option>
+              <option value="low-to-high">PRICE: LOW ➜ HIGH</option>
+              <option value="high-to-low">PRICE: HIGH ➜ LOW</option>
             </select>
           </div>
 
-          <button 
-            onClick={handleClearFilters}
-            style={{ padding: '8px 15px', borderRadius: '6px', backgroundColor: '#333', color: '#fff', border: 'none', cursor: 'pointer', marginLeft: 'auto' }}
-          >
-            ล้างค่า
+          <button onClick={handleClearFilters} className="reset-btn">
+            RESET SYSTEM
           </button>
         </div>
       </div>
 
+      {/* Grid Content */}
       {loading ? (
         <div style={{ textAlign: 'center', marginTop: '50px', color: '#ffc107' }}>Loading weapons...</div>
       ) : (
@@ -226,8 +222,9 @@ const HomePage = () => {
                   </div>
 
                   <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                     {/* ตรงนี้จะแสดงค่า category ตามที่ DB ส่งมา (light/heavy/explosive) */}
-                     <span className="badge" style={{ textTransform: 'uppercase' }}>{weapon.category}</span>
+                     <span className="badge" style={{ ...getBadgeStyle(weapon.category), textTransform: 'uppercase' }}>
+                       {weapon.category}
+                     </span>
                      <span style={{ fontSize: '0.8rem', color: '#ffc107', fontWeight: 'bold', border: '1px solid #ffc107', padding: '2px 6px', borderRadius: '4px' }}>
                        LV {weapon.required_license_level}
                      </span>
@@ -243,6 +240,7 @@ const HomePage = () => {
                     
                     <button 
                       onClick={() => navigate(`/product/${weapon.id}`)} 
+                      className="view-product-btn"
                       style={{ 
                         padding: '8px 20px', 
                         backgroundColor: '#ffc107', 
@@ -251,11 +249,16 @@ const HomePage = () => {
                         cursor: 'pointer', 
                         borderRadius: '50px',
                         fontWeight: 'bold',
-                        boxShadow: '0 2px 10px rgba(255, 193, 7, 0.2)',
-                        transition: 'transform 0.2s'
+                        transition: 'transform 0.2s, background-color 0.2s'
                       }}
-                      onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                      onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.backgroundColor = '#ff8f00';
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.backgroundColor = '#ffc107';
+                      }}
                     >
                       ดูสินค้า
                     </button>
@@ -270,44 +273,29 @@ const HomePage = () => {
             )}
           </div>
 
-          {/* Pagination Controls */}
+          {/* Pagination */}
           {totalPages > 1 && (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '40px', gap: '20px' }}>
-              <button
-                onClick={() => handlePageChange(page - 1)}
-                disabled={page === 1}
-                style={{
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  backgroundColor: page === 1 ? '#333' : '#ffc107',
-                  color: page === 1 ? '#666' : 'black',
-                  border: 'none',
-                  cursor: page === 1 ? 'not-allowed' : 'pointer',
-                  fontWeight: 'bold'
-                }}
-              >
-                Previous
-              </button>
-              
-              <span style={{ color: 'white', fontSize: '1.1rem', fontFamily: 'monospace' }}>
-                Page {page} of {totalPages}
-              </span>
-
-              <button
-                onClick={() => handlePageChange(page + 1)}
-                disabled={page === totalPages}
-                style={{
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  backgroundColor: page === totalPages ? '#333' : '#ffc107',
-                  color: page === totalPages ? '#666' : 'black',
-                  border: 'none',
-                  cursor: page === totalPages ? 'not-allowed' : 'pointer',
-                  fontWeight: 'bold'
-                }}
-              >
-                Next
-              </button>
+            <div className="pagination-container">
+              <div className="pagination-card">
+                <button
+                  onClick={() => handlePageChange(page - 1)}
+                  disabled={page === 1}
+                  className="page-btn"
+                >
+                  &lt;
+                </button>
+                <div className="page-info">
+                  <span className="current-page">{page}</span>
+                  <span className="total-pages">/ {totalPages}</span>
+                </div>
+                <button
+                  onClick={() => handlePageChange(page + 1)}
+                  disabled={page === totalPages}
+                  className="page-btn"
+                >
+                  &gt;
+                </button>
+              </div>
             </div>
           )}
         </>
