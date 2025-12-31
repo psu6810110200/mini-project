@@ -2,11 +2,12 @@
 import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { CartContext } from '../context/CartContext'; // ✅ 1. Import CartContext
+import { CartContext } from '../context/CartContext';
+import logo from '../assets/logowws.png'; // ✅ 1. Import รูปโลโก้เข้ามา
 
 const Navbar = () => {
   const auth = useContext(AuthContext);
-  const cart = useContext(CartContext); // ✅ 2. ดึงข้อมูลตะกร้ามาใช้
+  const cart = useContext(CartContext);
   const navigate = useNavigate();
 
   if (!auth?.isAuthenticated) return null;
@@ -22,7 +23,10 @@ const Navbar = () => {
       borderBottom: '1px solid #333'
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-        <Link to="/" style={{ color: '#ffc107', textDecoration: 'none', fontSize: '1.5rem', fontWeight: 'bold' }}>
+        
+        {/* ✅ 2. เพิ่มรูป Logo ไว้ด้านหน้า (ปรับ flex เพื่อให้ตรงกับตัวหนังสือ) */}
+        <Link to="/" style={{ color: '#ffc107', textDecoration: 'none', fontSize: '1.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <img src={logo} alt="Logo" style={{ height: '45px', objectFit: 'contain' }} /> 
           WAR WEAPON SHOP
         </Link>
         
@@ -35,11 +39,9 @@ const Navbar = () => {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
         
-        {/* ✅ 3. เพิ่มปุ่มตะกร้าสินค้าตรงนี้ */}
         <Link to="/cart" style={{ textDecoration: 'none', color: 'white', display: 'flex', alignItems: 'center', gap: '5px' }}>
           <span style={{ fontSize: '1.2rem' }}>🛒</span>
           <span>ตะกร้า</span>
-          {/* วงกลมแดงแจ้งเตือนจำนวนสินค้า */}
           {cart && cart.totalItems > 0 && (
             <span style={{ 
               backgroundColor: '#dc3545', 

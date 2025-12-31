@@ -3,24 +3,24 @@ import React, { useState } from 'react';
 import api from '../api/axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import logo from '../assets/logowws.png'; // ✅ Import รูปโลโก้
 
 const RegisterPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [licenseNumber, setLicenseNumber] = useState(''); // 1. เพิ่ม State
+  const [licenseNumber, setLicenseNumber] = useState(''); 
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // 2. ส่ง license_number ไปที่ Backend
       await api.post('/auth/register', { 
         username, 
         password,
         license_number: licenseNumber 
       });
       toast.success('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ');
-      navigate('/login'); // เด้งไปหน้า Login
+      navigate('/login'); 
     } catch (error) {
       toast.error('สมัครสมาชิกไม่สำเร็จ! ชื่อผู้ใช้อาจซ้ำ');
     }
@@ -46,6 +46,15 @@ return (
         border: '1px solid #333'
       }}>
         
+        {/* ✅ เพิ่ม Logo ตรงนี้ */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
+          <img 
+            src={logo} 
+            alt="Logo" 
+            style={{ width: '120px', height: 'auto', objectFit: 'contain' }} 
+          />
+        </div>
+
         <h2 style={{ 
           textAlign: 'center', 
           marginBottom: '30px', 

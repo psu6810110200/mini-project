@@ -4,6 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import api from '../api/axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import logo from '../assets/logowws.png'; // ✅ Import รูปโลโก้
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -57,6 +58,15 @@ const LoginPage = () => {
         border: '1px solid #333'
       }}>
         
+        {/* ✅ เพิ่ม Logo ตรงนี้ */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
+          <img 
+            src={logo} 
+            alt="Logo" 
+            style={{ width: '120px', height: 'auto', objectFit: 'contain' }} 
+          />
+        </div>
+
         <h2 style={{ 
           textAlign: 'center', 
           marginBottom: '30px', 
