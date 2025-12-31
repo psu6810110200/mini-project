@@ -1,18 +1,18 @@
 // src/context/AuthContext.tsx
 import React, { createContext, useState, useEffect, type ReactNode } from 'react';
+// ✅ Import api เพื่อนำมาตั้งค่า Header โดยตรง
+import api from '../api/axios'; 
 
-// 1. กำหนด Type ของ User (ปรับแก้ field ตาม database ของคุณได้เลย)
 interface User {
   id: number;
   username: string;
-  role: string; // เช่น 'admin', 'user'
+  role: string;
   // เพิ่ม field อื่นๆ ตามที่ Backend ส่งมา
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  // เพิ่ม parameter rememberMe: boolean เข้าไปใน function login
   login: (token: string, user: User, rememberMe: boolean) => void;
   logout: () => void;
 }
@@ -22,73 +22,75 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  // เพิ่ม loading state เพื่อกันหน้าเว็บเด้งไป Login ตอนกด Refresh
   const [loading, setLoading] = useState(true);
 
-  // 2. เช็ค Token ตอนโหลดหน้าเว็บ (Rehydration)
+  // 1. เช็ค Token ตอนเริ่มโหลดหน้าเว็บ (เฉพาะกรณี Remember Me)
   useEffect(() => {
     const initAuth = () => {
-      // ลองหาใน localStorage ก่อน (กรณี user ติ๊ก Remember Me ไว้)
-      let token = localStorage.getItem('access_token');
-      let savedUser = localStorage.getItem('user_data');
+      // ดึงจาก LocalStorage อย่างเดียว (เพราะ SessionStorage เราไม่ใช้แล้ว)
+      const token = localStorage.getItem('access_token');
+      const savedUser = localStorage.getItem('user_data');
 
-      // ถ้าไม่เจอใน localStorage ให้ลองหาใน sessionStorage (กรณีไม่ได้ติ๊ก)
-      if (!token || !savedUser) {
-        token = sessionStorage.getItem('access_token');
-        savedUser = sessionStorage.getItem('user_data');
-      }
-
-      // ถ้าเจอ Token ที่ไหนสักที่ ให้ Set ค่ากลับเข้าไปใน State
       if (token && savedUser) {
         try {
           setUser(JSON.parse(savedUser));
           setIsAuthenticated(true);
+          // ✅ สำคัญ: ต้องตั้งค่า Header ให้ Axios ด้วย เพราะ Interceptor อาจจะหาไม่เจอถ้าเราไม่ได้ Login ใหม่
+          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         } catch (error) {
           console.error("Error parsing user data:", error);
-          // ถ้าข้อมูล error ให้เคลียร์ทิ้งเพื่อความปลอดภัย
           localStorage.removeItem('access_token');
           localStorage.removeItem('user_data');
-          sessionStorage.removeItem('access_token');
-          sessionStorage.removeItem('user_data');
         }
       }
-      setLoading(false); // โหลดเสร็จแล้ว
+      setLoading(false);
     };
 
     initAuth();
   }, []);
 
-  // 3. ฟังก์ชัน Login ปรับปรุงใหม่
+  // 2. ฟังก์ชัน Login (แบบ Refresh แล้วหลุด)
   const login = (token: string, userData: User, rememberMe: boolean) => {
     setUser(userData);
     setIsAuthenticated(true);
 
+    // ✅ ตั้งค่า Token ให้ Axios ทันที (เพื่อให้ใช้งานได้เลยโดยไม่ต้องพึ่ง Storage)
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
     if (rememberMe) {
-      // ถ้าติ๊ก Remember Me: เก็บลง localStorage (อยู่ยาวจนกว่าจะสั่งลบ)
+      // --- กรณีติ๊ก Remember Me: เก็บลงเครื่อง (อยู่ยาว) ---
       localStorage.setItem('access_token', token);
       localStorage.setItem('user_data', JSON.stringify(userData));
     } else {
-      // ถ้าไม่ติ๊ก: เก็บลง sessionStorage (ปิด Browser แล้วหาย)
-      sessionStorage.setItem('access_token', token);
-      sessionStorage.setItem('user_data', JSON.stringify(userData));
+      // --- กรณีไม่ติ๊ก: ไม่เก็บลงที่ไหนเลย (Memory Only) ---
+      // พอ Refresh ปุ๊บ ตัวแปร state หาย -> หลุดทันที
+      // และต้องเคลียร์ของเก่าทิ้งเพื่อความชัวร์
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user_data');
     }
+    
+    // เคลียร์ sessionStorage เผื่อมีขยะเหลือจากเวอร์ชั่นเก่า
+    sessionStorage.removeItem('access_token');
+    sessionStorage.removeItem('user_data');
   };
 
-  // 4. ฟังก์ชัน Logout
+  // 3. ฟังก์ชัน Logout
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
     
-    // ลบออกจากทั้ง 2 ที่เพื่อความชัวร์
+    // ❌ ลบ Token ออกจาก Axios Header
+    delete api.defaults.headers.common['Authorization'];
+    
+    // ลบข้อมูลออกจาก Storage ทุกที่
     localStorage.removeItem('access_token');
     localStorage.removeItem('user_data');
     sessionStorage.removeItem('access_token');
     sessionStorage.removeItem('user_data');
   };
 
-  // ถ้ายังโหลดไม่เสร็จ (กำลังเช็ค Token) ไม่ต้อง Render อะไร (หรือใส่ Loading Spinner)
   if (loading) {
-    return null; 
+    return null; // หรือใส่ Loading Spinner
   }
 
   return (

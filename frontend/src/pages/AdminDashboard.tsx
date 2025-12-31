@@ -40,8 +40,10 @@ const AdminDashboard = () => {
   const fetchWeapons = async () => {
     try {
       setLoadingWeapons(true);
-      const data = await getWeapons();
-      setWeapons(data);
+      const response = await getWeapons({ page: 1, limit: 100 }); 
+    
+      // 2. ดึง .data ออกมาจาก response ก่อนนำไปใส่ State
+      setWeapons(response.data);
     } catch (error) {
       toast.error('ไม่สามารถดึงข้อมูลอาวุธได้');
     } finally {
