@@ -17,7 +17,7 @@ export class Weapon {
   @Column('text')
   description: string;
 
-  @Column('decimal', { precision: 10, scale: 2 }) // เก็บเงิน ต้องใช้ decimal
+  @Column('decimal', { precision: 10, scale: 2 }) 
   price: number;
 
   @Column('int')

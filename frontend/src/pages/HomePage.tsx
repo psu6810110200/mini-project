@@ -224,22 +224,40 @@ const HomePage = () => {
                     <div key={weapon.id} className={`weapon-card ${getCardClass(weapon.category)}`}>
                       <h3 style={{ marginTop: '0', marginBottom: '10px', color: 'white' }}>{weapon.name}</h3>
                       
-                      <div style={{ width: '100%', height: '180px', backgroundColor: '#333', marginBottom: '10px', borderRadius: '4px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                         <img 
-                           src={weapon.image || "https://placehold.co/400x300?text=No+Image"} 
-                           alt={weapon.name} 
-                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                           onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/400x300?text=Error"; }}
-                         />
+                      {/* --- ส่วนที่แก้ไข: ปรับการแสดงผลรูปภาพ --- */}
+                      <div style={{ 
+                        width: '100%', 
+                        height: '180px', 
+                        backgroundColor: '#fff',  // เปลี่ยนพื้นหลังเป็นสีขาว
+                        marginBottom: '10px', 
+                        borderRadius: '4px', 
+                        overflow: 'hidden', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        border: '1px solid #444' // เพิ่มขอบเล็กน้อย
+                      }}>
+                          <img 
+                            src={weapon.image || "https://placehold.co/400x300?text=No+Image"} 
+                            alt={weapon.name} 
+                            style={{ 
+                              width: '100%', 
+                              height: '100%', 
+                              objectFit: 'contain', // เปลี่ยนเป็น contain เพื่อให้เห็นรูปเต็ม
+                              padding: '10px'       // เพิ่ม padding ให้รูปไม่ชิดขอบ
+                            }}
+                            onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/400x300?text=Error"; }}
+                          />
                       </div>
+                      {/* ------------------------------------- */}
 
                       <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                         <span className="badge" style={{ ...getBadgeStyle(weapon.category), textTransform: 'uppercase' }}>
-                           {weapon.category}
-                         </span>
-                         <span style={{ fontSize: '0.8rem', color: '#ffc107', fontWeight: 'bold', border: '1px solid #ffc107', padding: '2px 6px', borderRadius: '4px' }}>
-                           LV {weapon.required_license_level}
-                         </span>
+                          <span className="badge" style={{ ...getBadgeStyle(weapon.category), textTransform: 'uppercase' }}>
+                            {weapon.category}
+                          </span>
+                          <span style={{ fontSize: '0.8rem', color: '#ffc107', fontWeight: 'bold', border: '1px solid #ffc107', padding: '2px 6px', borderRadius: '4px' }}>
+                            LV {weapon.required_license_level}
+                          </span>
                       </div>
 
                       <p style={{ color: '#aaa', minHeight: '50px', fontSize: '0.85rem', lineHeight: '1.4' }}>{weapon.description}</p>
