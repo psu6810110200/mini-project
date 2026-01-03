@@ -1,20 +1,26 @@
 // src/pages/CartPage.tsx
 import React, { useContext, useState } from 'react';
 import { CartContext } from '../context/CartContext';
+import { AuthContext } from '../context/AuthContext'; // ✅ 1. Import AuthContext มาเพิ่ม
 import { useNavigate } from 'react-router-dom';
-import api from '../api/axios'; // ✅ แก้ไข: ใช้ api ตัวกลางแทน axios
+import api from '../api/axios';
 import { toast } from 'react-toastify';
 
 const CartPage = () => {
   const { items, removeFromCart, addToCart, decreaseQuantity, totalPrice, clearCart } = useContext(CartContext)!;
+  
+  // ✅ 2. ดึง context ของ Auth มาใช้
+  const auth = useContext(AuthContext); 
+  
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const handleCheckout = async () => {
-    const token = localStorage.getItem('access_token'); 
-
-    if (!token) {
+    // ✅ 3. เช็คสถานะล็อกอินจาก Context โดยตรง (แม่นยำกว่าการเช็ค Token เอง)
+    // ถ้า auth เป็น null หรือ isAuthenticated เป็น false ให้ดีดออก
+    if (!auth?.isAuthenticated) {
       toast.error('กรุณาเข้าสู่ระบบก่อนทำการสั่งซื้อ');
+      // optional: navigate('/login'); // ถ้าต้องการให้เด้งไปหน้า Login เลยให้เปิดบรรทัดนี้
       return;
     }
 
@@ -28,11 +34,9 @@ const CartPage = () => {
         })),
       };
 
-      // ✅ แก้ไข: ใช้ api.post และ path แบบ Relative
-      // ระบบจะยิงไปที่ Port เดียวกับที่ตั้งไว้ใน api/axios.ts อัตโนมัติ
-      const response = await api.post('/orders', payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // ✅ 4. ยิง API โดย "ไม่ต้อง" ส่ง Header เอง
+      // Interceptor ใน api/axios.ts จะไปดึง Token (ไม่ว่าจะอยู่ Local หรือ Session) มาแปะให้เองอัตโนมัติ
+      const response = await api.post('/orders', payload);
 
       if (response.status === 201) {
         toast.success('ชำระเงินสำเร็จ !', {
@@ -43,12 +47,12 @@ const CartPage = () => {
         // คำนวณจำนวนสินค้า
         const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
 
+        // เคลียร์ตะกร้า
         clearCart();
         
         // ส่งข้อมูลไปยังหน้า Order Success
         navigate('/order-success', { 
           state: { 
-             // ใช้ข้อมูลจาก response ถ้ามี หรือใช้จาก Context ถ้า backend ไม่ส่งมา
             orderId: response.data.orderId || response.data.id, 
             totalPrice: response.data.totalPrice || totalPrice,
             totalQuantity: totalQuantity
@@ -63,6 +67,7 @@ const CartPage = () => {
     }
   };
 
+  // --- ส่วนแสดงผล UI (เหมือนเดิม) ---
   if (items.length === 0) {
     return (
       <div className="container" style={{ textAlign: 'center', marginTop: '100px', color: 'white' }}>

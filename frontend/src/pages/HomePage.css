@@ -11,138 +11,56 @@
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1400px; /* ขยายความกว้างหน่อยเพื่อให้มีที่สำหรับ Sidebar */
   margin: 0 auto;
   padding: 20px;
   min-height: 100vh;
 }
 
-.weapon-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 25px;
-  padding: 20px 0;
+/* --- Layout ใหม่: Flexbox สำหรับ Sidebar + Content --- */
+.home-layout {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start; /* ให้ Sidebar เริ่มต้นที่ด้านบน ไม่ยืดตามความสูง */
 }
 
-/* --- Filter Panel Design (Tactical HUD Style) --- */
-.filter-panel {
+/* --- Sidebar Styling --- */
+.filter-sidebar {
+  width: 280px; /* ความกว้างคงที่ */
+  flex-shrink: 0; /* ห้ามหด */
   background-color: var(--bg-panel);
   border: 1px solid var(--border-color);
-  border-left: 5px solid var(--primary); /* แถบสีด้านซ้าย */
+  border-left: 4px solid var(--primary);
   border-radius: 4px;
-  padding: 25px;
-  margin-bottom: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  padding: 20px;
+  position: sticky; /* ให้ Sidebar เลื่อนตาม */
+  top: 20px;
   display: flex;
   flex-direction: column;
-  gap: 25px;
-  position: relative;
-}
-
-/* เส้นตกแต่งด้านบนขวา */
-.filter-panel::after {
-  content: "SYSTEM: ONLINE";
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  font-family: monospace;
-  font-size: 0.7rem;
-  color: var(--primary);
-  opacity: 0.5;
-  letter-spacing: 2px;
-}
-
-/* แถวบน: Search + Categories */
-.filter-row-top {
-  display: flex;
-  flex-wrap: wrap;
   gap: 20px;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #2a2a2a;
-  padding-bottom: 25px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
-/* Search Box Design */
-.search-box {
-  flex: 1;
-  min-width: 280px;
-  position: relative;
-}
-.search-box input {
-  width: 100%;
-  padding: 14px 15px 14px 45px;
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-color);
-  color: var(--primary);
-  border-radius: 4px;
+.sidebar-header {
   font-family: monospace;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-.search-box input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 15px rgba(255, 193, 7, 0.1);
-}
-.search-box::before {
-  content: '🔍';
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1rem;
-  opacity: 0.7;
-  filter: grayscale(100%);
+  font-size: 1.2rem;
+  color: var(--primary);
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  letter-spacing: 2px;
+  text-align: center;
 }
 
-/* Category Buttons (Tabs) */
-.category-group {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.cat-btn {
-  background: transparent;
-  border: 1px solid var(--border-color);
-  color: var(--text-muted);
-  padding: 10px 20px;
-  cursor: pointer;
-  border-radius: 2px;
-  font-weight: bold;
-  font-size: 0.85rem;
-  transition: all 0.2s;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-.cat-btn:hover {
-  border-color: var(--text-main);
-  color: var(--text-main);
-}
-.cat-btn.active {
-  background-color: var(--primary);
-  color: #000;
-  border-color: var(--primary);
-  box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
-  font-weight: 900;
-}
-
-/* แถวล่าง: Filters ย่อย */
-.filter-row-bottom {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 30px;
-  align-items: flex-end;
-}
-
+/* --- Groups inside Sidebar --- */
 .filter-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .filter-label {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -160,41 +78,102 @@
   border-radius: 50%;
 }
 
-/* Custom Select & Inputs */
+/* Search Box in Sidebar */
+.search-box {
+  width: 100%;
+  position: relative;
+}
+.search-box input {
+  width: 100%;
+  padding: 12px 15px 12px 40px; /* ปรับ padding */
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--primary);
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  box-sizing: border-box; /* สำคัญ */
+}
+.search-box input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 10px rgba(255, 193, 7, 0.1);
+}
+.search-box::before {
+  content: '🔍';
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  opacity: 0.7;
+  filter: grayscale(100%);
+}
+
+/* Vertical Category List */
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cat-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: left; /* จัดชิดซ้าย */
+}
+.cat-btn:hover {
+  border-color: var(--text-main);
+  color: var(--text-main);
+  padding-left: 15px; /* Effect ขยับเมื่อ Hover */
+}
+
+/* Category Active States */
+.cat-btn.active-all { background-color: #ffc107 !important; color: black !important; border-color: #ffc107 !important; }
+.cat-btn.active-light { background-color: #2ecc71 !important; color: white !important; border-color: #27ae60 !important; }
+.cat-btn.active-heavy { background-color: #3498db !important; color: white !important; border-color: #2980b9 !important; }
+.cat-btn.active-explosive { background-color: #e74c3c !important; color: white !important; border-color: #c0392b !important; }
+
+/* Custom Inputs */
 .styled-input {
   background-color: #2a2a2a;
   border: 1px solid var(--border-color);
   color: var(--text-main);
-  padding: 10px 15px;
+  padding: 10px;
   border-radius: 4px;
   outline: none;
-  min-width: 160px;
   font-size: 0.9rem;
-  cursor: pointer;
-  transition: border-color 0.3s;
+  width: 100%; /* เต็มความกว้าง Sidebar */
+  box-sizing: border-box;
 }
 .styled-input:focus {
   border-color: var(--primary);
 }
 
-.price-inputs {
+/* Price Inputs Vertical Stack */
+.price-inputs-col {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column; /* เรียงแนวตั้ง หรือจะแนวนอนก็ได้ */
+  gap: 5px;
 }
-.price-field {
-  width: 100px;
+.price-to {
   text-align: center;
-}
-.price-separator {
-  color: var(--text-muted);
-  font-weight: bold;
+  font-size: 0.7rem;
+  color: #666;
 }
 
 /* Reset Button */
 .reset-btn {
-  margin-left: auto;
-  padding: 10px 25px;
+  padding: 12px;
   background-color: transparent;
   color: #ff4444;
   border: 1px solid #ff4444;
@@ -205,26 +184,56 @@
   letter-spacing: 1px;
   transition: 0.2s;
   text-transform: uppercase;
+  margin-top: 10px;
+  text-align: center;
 }
 .reset-btn:hover {
   background-color: #ff4444;
   color: white;
 }
+.full-width {
+  width: 100%;
+}
 
-/* Responsive */
+/* --- Product Content Area --- */
+.product-content {
+  flex: 1; /* กินพื้นที่ที่เหลือทั้งหมด */
+  min-width: 0; /* ป้องกัน Flexbox ล้น */
+}
+
+.weapon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* ปรับขนาด Card */
+  gap: 20px;
+}
+
+/* --- Responsive Design --- */
 @media (max-width: 900px) {
-  .filter-row-top, .filter-row-bottom {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 20px;
+  .home-layout {
+    flex-direction: column; /* มือถือ: เรียงแนวตั้ง */
   }
-  .reset-btn {
-    margin-left: 0;
+  .filter-sidebar {
+    width: 100%; /* เต็มจอ */
+    position: static; /* เลิก Sticky */
+    box-sizing: border-box;
+  }
+  
+  /* ปรับให้ Category เรียงแนวนอนในมือถือเพื่อประหยัดที่ */
+  .category-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .cat-btn {
+    flex: 1;
     text-align: center;
+  }
+  .price-inputs-col {
+    flex-direction: row;
+    align-items: center;
   }
 }
 
-/* --- Weapon Card Styles --- */
+/* --- Weapon Card & General Styles (คงเดิมไว้บางส่วน) --- */
 .weapon-card {
   background-color: #1a1a1a;
   border: 1px solid #333;
@@ -238,235 +247,53 @@
   z-index: 1;
 }
 
-/* Hover: การ์ดลอยขึ้น + ขอบเปลี่ยนสีเหลือง */
 .weapon-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 20px rgba(0,0,0,0.5);
   border-color: var(--primary);
 }
 
-/* --- แถบสีด้านบน (::before) --- */
+/* (Copy ส่วนตกแต่ง Card, Badge, Pagination เดิมมาใช้ได้เลย หรือใช้ด้านล่างนี้ที่รวมไว้ให้แล้ว) */
+
+/* แถบสีด้านบน */
 .weapon-card::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 5px; /* ความหนาของแถบ */
-  
-  transform: scaleX(1); 
-  transform-origin: left;
+  top: 0; left: 0; right: 0; height: 5px;
+  transform: scaleX(1); transform-origin: left;
   transition: background 0.3s ease-in-out;
   z-index: 2;
 }
+.card-light::before { background: linear-gradient(90deg, #1b5e20 0%, #81c784 100%); }
+.card-heavy::before { background: linear-gradient(90deg, #0d47a1 0%, #64b5f6 100%); }
+.card-explosive::before { background: linear-gradient(90deg, #b71c1c 0%, #e57373 100%); }
+.weapon-card:hover::before { background: var(--primary) !important; }
 
-/* Light (สีเขียว): เขียวเข้ม -> เขียวพาสเทล */
-.card-light::before {
-  background: linear-gradient(90deg, #1b5e20 0%, #81c784 100%);
-}
-
-/* ✅ Heavy (แก้ไขจากสีน้ำเงิน -> สีเหลืองเข้ม/ทองแดง): ไล่จากเข้มมาก -> อ่อนลงนิดหน่อย */
-.card-heavy::before {
-  /* เดิมเป็นน้ำเงิน #0d47a1 -> #64b5f6 */
-  background: linear-gradient(90deg, #0d47a1 0%, #64b5f6 100%); 
-}
-
-/* Explosive (สีแดง): แดงเข้ม -> แดงพาสเทล */
-.card-explosive::before {
-  background: linear-gradient(90deg, #b71c1c 0%, #e57373 100%);
-}
-
-/* --- เมื่อ Hover แถบด้านบนเปลี่ยนเป็นสีเหลืองหลัก (Base Color) --- */
-.weapon-card:hover::before {
-  background: var(--primary) !important;
-}
-
-/* --- เอฟเฟกต์สเปรย์ (::after) --- */
+/* เอฟเฟกต์สเปรย์ */
 .weapon-card::after {
   content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 100%;
-  opacity: 0; /* ซ่อน */
-  pointer-events: none;
-  transition: opacity 0.3s ease-in-out;
-  z-index: -1;
+  position: absolute; top: 0; left: 0; right: 0; height: 100%;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: -1;
 }
+.weapon-card:hover::after { opacity: 1; }
+.card-light::after { background: linear-gradient(to bottom, rgba(40, 167, 69, 0.25) 0%, rgba(40, 167, 69, 0) 40%); }
+.card-heavy::after { background: linear-gradient(to bottom, rgba(255, 143, 0, 0.25) 0%, rgba(255, 143, 0, 0) 40%); }
+.card-explosive::after { background: linear-gradient(to bottom, rgba(220, 53, 69, 0.25) 0%, rgba(220, 53, 69, 0) 40%); }
 
-.weapon-card:hover::after {
-  opacity: 1; /* แสดง */
-}
-
-/* สีสเปรย์ Light (เขียว) */
-.card-light::after {
-  background: linear-gradient(to bottom, rgba(40, 167, 69, 0.25) 0%, rgba(40, 167, 69, 0) 40%);
-}
-
-/* ✅ สีสเปรย์ Heavy (แก้ไขจากน้ำเงิน -> เหลืองเข้ม) */
-.card-heavy::after {
-  /* เดิมเป็นน้ำเงิน rgba(0, 123, 255...) */
-  background: linear-gradient(to bottom, rgba(255, 143, 0, 0.25) 0%, rgba(255, 143, 0, 0) 40%);
-}
-
-/* สีสเปรย์ Explosive (แดง) */
-.card-explosive::after {
-  background: linear-gradient(to bottom, rgba(220, 53, 69, 0.25) 0%, rgba(220, 53, 69, 0) 40%);
-}
-
-.whitelist-btn {
-  position: absolute; /* แก้ไขจาก right เป็น absolute เพื่อความถูกต้อง */
-  top: 15px;
-  right: 15px;
-  background: transparent;
-  border: none;
-  font-size: 1.8rem;
-  color: var(--primary);
-  cursor: pointer;
-  z-index: 10;
-  padding: 0;
-  line-height: 1;
-  transition: transform 0.2s;
-  text-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-/* --- Badge & Text Styles --- */
-.badge {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-/* Badge Light (เขียว) */
+.badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
 .card-light .badge { background-color: rgba(40, 167, 69, 0.2); color: #4caf50; border: 1px solid #4caf50; }
-
-/* ✅ Badge Heavy (แก้ไขจากน้ำเงิน -> เหลืองเข้ม) */
-.card-heavy .badge { 
- background-color: rgba(40, 167, 69, 0.2); color: #2980b9; border: 1px solid #2980b9; }
-
-/* Badge Explosive (แดง) */
+.card-heavy .badge { background-color: rgba(40, 167, 69, 0.2); color: #2980b9; border: 1px solid #2980b9; }
 .card-explosive .badge { background-color: rgba(220, 53, 69, 0.2); color: #ef5350; border: 1px solid #ef5350; }
 
-.price {
-  font-size: 1.4rem;
-  font-weight: bold;
-  color: var(--primary);
-  margin-top: 5px;
-}
+.price { font-size: 1.4rem; font-weight: bold; color: var(--primary); margin-top: 5px; }
+.stock { font-size: 0.85rem; color: #888; margin-top: 2px; }
 
-.stock {
-  font-size: 0.85rem;
-  color: #888;
-  margin-top: 2px;
-}
-
-/* --- Pagination (Rounded Card) --- */
-.pagination-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 50px;
-  margin-bottom: 30px;
-}
-
-.pagination-card {
-  display: inline-flex;
-  align-items: center;
-  gap: 20px;
-  background-color: var(--bg-panel);
-  padding: 10px 25px;
-  border-radius: 50px;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 5px 20px rgba(0,0,0,0.4);
-}
-
-.page-btn {
-  background-color: transparent;
-  color: var(--text-main);
-  border: 1px solid var(--border-color);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: 0.2s;
-}
-
-.page-btn:hover:not(:disabled) {
-  background-color: var(--primary);
-  color: black;
-  border-color: var(--primary);
-}
-
-.page-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.page-info {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  font-family: monospace;
-}
-
-.current-page {
-  font-size: 1.8rem;
-  font-weight: 900;
-  color: var(--primary);
-  line-height: 1;
-}
-
-.total-pages {
-  font-size: 1rem;
-  color: var(--text-muted);
-  font-weight: bold;
-}
-
-/* --- Category Buttons Active State --- */
-
-/* ALL: สีเหลือง */
-.cat-btn.active-all {
-    background-color: #ffc107 !important;
-    color: black !important;
-    border-color: #ffc107 !important;
-}
-
-/* LIGHT: สีเขียว */
-.cat-btn.active-light {
-    background-color: #2ecc71 !important;
-    color: white !important;
-    border-color: #27ae60 !important;
-    box-shadow: 0 0 10px rgba(46, 204, 113, 0.4);
-}
-
-/* HEAVY: สีฟ้า */
-.cat-btn.active-heavy {
-    background-color: #3498db !important;
-    color: white !important;
-    border-color: #2980b9 !important;
-    box-shadow: 0 0 10px rgba(52, 152, 219, 0.4);
-}
-
-/* EXPLOSIVE: สีแดง */
-.cat-btn.active-explosive {
-    background-color: #e74c3c !important;
-    color: white !important;
-    border-color: #c0392b !important;
-    box-shadow: 0 0 10px rgba(231, 76, 60, 0.4);
-}
-
-/* เพิ่มเติม: ปรับสไตล์พื้นฐานปุ่ม Badge */
-.badge {
-    padding: 3px 10px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-}
+/* Pagination */
+.pagination-container { display: flex; justify-content: center; margin-top: 50px; margin-bottom: 30px; }
+.pagination-card { display: inline-flex; align-items: center; gap: 20px; background-color: var(--bg-panel); padding: 10px 25px; border-radius: 50px; border: 1px solid var(--border-color); }
+.page-btn { background: transparent; color: white; border: 1px solid #333; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+.page-btn:hover:not(:disabled) { background: var(--primary); color: black; border-color: var(--primary); }
+.page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.page-info { font-family: monospace; display: flex; gap: 8px; align-items: baseline; }
+.current-page { font-size: 1.8rem; font-weight: 900; color: var(--primary); }
+.total-pages { color: #888; }
