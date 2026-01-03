@@ -1,28 +1,34 @@
 // src/pages/CartPage.tsx
 import React, { useContext, useState } from 'react';
 import { CartContext } from '../context/CartContext';
-import { AuthContext } from '../context/AuthContext'; // ✅ 1. Import AuthContext มาเพิ่ม
+import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { toast } from 'react-toastify';
 
 const CartPage = () => {
   const { items, removeFromCart, addToCart, decreaseQuantity, totalPrice, clearCart } = useContext(CartContext)!;
-  
-  // ✅ 2. ดึง context ของ Auth มาใช้
   const auth = useContext(AuthContext); 
   
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  
+  // --- เพิ่ม State สำหรับเก็บวันที่ที่เลือก ---
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  // --------------------------------------
 
   const handleCheckout = async () => {
-    // ✅ 3. เช็คสถานะล็อกอินจาก Context โดยตรง (แม่นยำกว่าการเช็ค Token เอง)
-    // ถ้า auth เป็น null หรือ isAuthenticated เป็น false ให้ดีดออก
     if (!auth?.isAuthenticated) {
       toast.error('กรุณาเข้าสู่ระบบก่อนทำการสั่งซื้อ');
-      // optional: navigate('/login'); // ถ้าต้องการให้เด้งไปหน้า Login เลยให้เปิดบรรทัดนี้
       return;
     }
+
+    // --- เพิ่มการเช็คว่าเลือกวันที่หรือยัง ---
+    if (!selectedDate) {
+      toast.warn('กรุณาเลือกวันที่ต้องการรับสินค้า');
+      return;
+    }
+    // ----------------------------------
 
     try {
       setLoading(true);
@@ -32,10 +38,9 @@ const CartPage = () => {
           weaponId: item.id,
           quantity: item.quantity,
         })),
+        received_date: selectedDate, // --- ส่งวันที่ไปด้วย ---
       };
 
-      // ✅ 4. ยิง API โดย "ไม่ต้อง" ส่ง Header เอง
-      // Interceptor ใน api/axios.ts จะไปดึง Token (ไม่ว่าจะอยู่ Local หรือ Session) มาแปะให้เองอัตโนมัติ
       const response = await api.post('/orders', payload);
 
       if (response.status === 201) {
@@ -44,18 +49,16 @@ const CartPage = () => {
           autoClose: 3000,
         });
 
-        // คำนวณจำนวนสินค้า
         const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
 
-        // เคลียร์ตะกร้า
         clearCart();
         
-        // ส่งข้อมูลไปยังหน้า Order Success
         navigate('/order-success', { 
           state: { 
             orderId: response.data.orderId || response.data.id, 
             totalPrice: response.data.totalPrice || totalPrice,
-            totalQuantity: totalQuantity
+            totalQuantity: totalQuantity,
+            receivedDate: selectedDate
           } 
         });
       }
@@ -67,7 +70,6 @@ const CartPage = () => {
     }
   };
 
-  // --- ส่วนแสดงผล UI (เหมือนเดิม) ---
   if (items.length === 0) {
     return (
       <div className="container" style={{ textAlign: 'center', marginTop: '100px', color: 'white' }}>
@@ -159,7 +161,28 @@ const CartPage = () => {
               <span>ยอดรวม</span>
               <span>฿{totalPrice.toLocaleString()}</span>
             </div>
+            
             <hr style={{ borderColor: '#eee' }} />
+
+            {/* --- เพิ่ม Input เลือกวันที่ --- */}
+            <div style={{ marginTop: '15px', marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>วันที่ต้องการรับสินค้า:</label>
+              <input 
+                type="date" 
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                style={{ 
+                  width: '100%', 
+                  padding: '10px', 
+                  border: '1px solid #ccc', 
+                  borderRadius: '5px',
+                  fontSize: '1rem'
+                }}
+                min={new Date().toISOString().split('T')[0]} // ป้องกันเลือกวันในอดีต
+              />
+            </div>
+            {/* --------------------------- */}
+
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.5rem', fontWeight: 'bold', margin: '20px 0' }}>
               <span>ยอดสุทธิ</span>
               <span style={{ color: '#28a745' }}>฿{totalPrice.toLocaleString()}</span>

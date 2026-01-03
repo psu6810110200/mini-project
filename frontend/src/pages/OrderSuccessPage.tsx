@@ -1,49 +1,41 @@
-// src/pages/OrderSuccessPage.tsx
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 
-// กำหนด Type ของข้อมูลที่จะรับมาจากหน้า CartPage
+// 1. เพิ่ม receivedDate ใน Type เพื่อรับค่าวันที่จากหน้า CartPage
 interface OrderSuccessState {
   orderId: string;
   totalPrice: number;
   totalQuantity: number;
+  receivedDate?: string; // เพิ่มตัวนี้
 }
 
 const OrderSuccessPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // รับข้อมูล Order ID, ยอดเงิน, และจำนวนสินค้า
+  // ดึงข้อมูลจาก State ที่ส่งมาจาก CartPage
   const state = location.state as OrderSuccessState | null;
-  const { orderId, totalPrice, totalQuantity } = state || {};
+  const { orderId, totalPrice, totalQuantity, receivedDate } = state || {};
 
-  // ถ้าไม่มี Order ID (เช่น คนแอบพิมพ์ URL เข้าหน้านี้เอง) ให้ดีดกลับหน้าแรก
+  // ถ้าไม่มี Order ID ให้ดีดกลับหน้าแรก
   useEffect(() => {
     if (!orderId) {
       navigate('/'); 
     }
   }, [orderId, navigate]);
 
-  // ถ้ายังไม่มีข้อมูล ไม่ต้อง Render อะไร (รอ Redirect)
   if (!orderId) return null;
 
-  // --- ฟังก์ชันคำนวณวันนัดรับสินค้า ---
-  const calculatePickupDate = () => {
-    const today = new Date();
-    
-    // วันเริ่มรับ: อีก 3 วันข้างหน้า
-    const startDate = new Date(today);
-    startDate.setDate(today.getDate() + 3);
-
-    // วันสุดท้าย: ขั้นต่ำ 3 วัน + จำนวนของ (แต่ไม่เกิน 14 วันรวม)
-    // สูตร: ถ้าสั่ง 1 ชิ้น = 3-4 วัน, สั่ง 10 ชิ้น = 3-13 วัน
-    const extraDays = Math.min(11, totalQuantity || 1); 
-    const endDate = new Date(today);
-    endDate.setDate(today.getDate() + 3 + extraDays);
-
-    // จัดรูปแบบวันที่ภาษาไทย (เช่น 3 ม.ค. 2026)
-    const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
-    return `${startDate.toLocaleDateString('th-TH', options)} - ${endDate.toLocaleDateString('th-TH', options)}`;
+  // --- ฟังก์ชันจัดรูปแบบวันที่ภาษาไทย ---
+  const formatThaiDate = (dateString: string | undefined) => {
+    if (!dateString) return "ไม่ระบุวันที่";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('th-TH', { 
+      weekday: 'long',
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    });
   };
 
   return (
@@ -67,7 +59,7 @@ const OrderSuccessPage = () => {
         boxShadow: '0 4px 20px rgba(0,0,0,0.6)'
       }}>
         
-        {/* ไอคอนเครื่องหมายถูกสีเขียว */}
+        {/* ไอคอนสำเร็จ */}
         <div style={{ 
           width: '80px', 
           height: '80px', 
@@ -87,7 +79,7 @@ const OrderSuccessPage = () => {
         <h1 style={{ fontSize: '2rem', marginBottom: '10px', color: '#28a745' }}>สั่งซื้อสำเร็จ!</h1>
         <p style={{ color: '#aaa', marginBottom: '30px' }}>ขอบคุณที่อุดหนุน อาวุธของคุณพร้อมจัดเตรียมแล้ว</p>
 
-        {/* --- ส่วนใบเสร็จ (Receipt) --- */}
+        {/* --- ใบเสร็จ --- */}
         <div style={{ 
           backgroundColor: '#252525', 
           padding: '25px', 
@@ -131,11 +123,11 @@ const OrderSuccessPage = () => {
           </div>
         </div>
 
-        {/* --- กล่องแสดงวันนัดรับสินค้า --- */}
+        {/* --- ส่วนแสดงวันนัดรับสินค้า (แก้ไขใหม่) --- */}
         <div style={{ 
           marginTop: '20px', 
           padding: '15px', 
-          backgroundColor: '#1e2a38', // สีน้ำเงินเข้มๆ ให้ต่างจากพื้นหลัง
+          backgroundColor: '#1e2a38', 
           borderRadius: '10px', 
           border: '1px solid #2c3e50',
           marginBottom: '30px'
@@ -144,14 +136,15 @@ const OrderSuccessPage = () => {
                📅 กำหนดวันนัดรับสินค้า
              </strong>
              <div style={{ fontSize: '1.3rem', color: 'white', fontWeight: 'bold', margin: '5px 0' }}>
-               {calculatePickupDate()}
+               {/* แสดงวันที่ที่รับมาจากหน้า Cart */}
+               {formatThaiDate(receivedDate)}
              </div>
              <small style={{ color: '#888', fontStyle: 'italic' }}>
-               (ระยะเวลาเตรียมสินค้า 3-14 วัน ขึ้นอยู่กับจำนวน)
+               (กรุณามารับสินค้าตามวันที่ระบุไว้)
              </small>
         </div>
+        {/* -------------------------------------- */}
 
-        {/* --- ปุ่ม Action --- */}
         <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
           <Link to="/orders" style={{ textDecoration: 'none', flex: 1 }}>
             <button 

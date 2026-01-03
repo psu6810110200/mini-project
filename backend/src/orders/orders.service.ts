@@ -31,7 +31,10 @@ export class OrdersService {
         ? Number(customer.license_number)
         : 0;
 
-      const { items } = createOrderDto;
+      // --- จุดแก้ไขที่ 1: รับค่า received_date มาด้วย ---
+      const { items, received_date } = createOrderDto;
+      // ---------------------------------------------
+
       let calculatedTotalPrice = 0;
       const newOrderItems: OrderItem[] = [];
 
@@ -79,6 +82,12 @@ export class OrdersService {
       order.total_price = calculatedTotalPrice;
       order.status = OrderStatus.PENDING;
       order.order_items = newOrderItems;
+
+      // --- จุดแก้ไขที่ 2: กำหนดค่า received_date ลงใน Order ---
+      if (received_date) {
+        order.received_date = received_date;
+      }
+      // ----------------------------------------------------
 
       // 8. บันทึกลง Database
       const savedOrder = await queryRunner.manager.save(Order, order);

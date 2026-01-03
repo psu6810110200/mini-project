@@ -11,7 +11,6 @@ export interface LoginResponse {
   user: UserProfile;
 }
 
-// Payload สำหรับตอนสร้าง/แก้ไข (รับค่าจาก Form)
 export interface WeaponPayload {
   name: string;
   description: string;
@@ -65,5 +64,6 @@ export interface Order {
   total_price: number;
   status: OrderStatus;
   created_at: string;
+  received_date?: string; // --- เพิ่มบรรทัดนี้ ---
   order_items: OrderItem[];
 }

@@ -71,6 +71,17 @@ const AdminDashboard = () => {
     }
   }, [activeTab]);
 
+  // --- ฟังก์ชันแปลงวันที่ (เหลือแค่วันเดือนปี) ---
+  const formatDateOnly = (dateString: string | undefined) => {
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleDateString('th-TH', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  };
+  // ----------------------------------------
+
   // --- Handlers ---
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -152,7 +163,6 @@ const AdminDashboard = () => {
     <div className="admin-container">
       <h1 className="admin-header">🛡️ Admin Dashboard</h1>
 
-      {/* Tab Menu */}
       <div className="tab-menu">
         <button 
           className={`tab-btn ${activeTab === 'weapons' ? 'active' : ''}`}
@@ -292,8 +302,10 @@ const AdminDashboard = () => {
                 <thead>
                   <tr>
                     <th>Order ID</th>
+                    <th>วันที่สั่งซื้อ</th>
                     <th>ลูกค้า</th>
                     <th>License</th>
+                    <th>วันนัดรับสินค้า</th>
                     <th>รายการสินค้า</th>
                     <th>ยอดรวม</th>
                     <th>สถานะ</th>
@@ -304,10 +316,20 @@ const AdminDashboard = () => {
                   {orders.map((order) => (
                     <tr key={order.id}>
                       <td><small style={{color:'#777'}}>{order.id.substring(0, 8)}...</small></td>
+                      
+                      {/* --- แก้ไข: ใช้วันที่อย่างเดียว --- */}
+                      <td>{formatDateOnly(order.created_at)}</td>
+                      
                       <td>{order.user?.username || 'Unknown User'}</td>
                       <td style={{ color: order.user?.license_number ? '#007bff' : '#555', textAlign: 'center', fontWeight: 'bold' }}>
                         {order.user?.license_number || 'N/A'}
                       </td>
+
+                      {/* --- แก้ไข: ใช้วันที่อย่างเดียว --- */}
+                      <td style={{ color: '#00d2ff', fontWeight: 'bold' }}>
+                        {formatDateOnly(order.received_date)}
+                      </td>
+                      
                       <td>
                         <ul style={{ paddingLeft: '20px', margin: 0, fontSize: '0.9rem', color: '#ccc' }}>
                           {order.order_items?.map((item) => (

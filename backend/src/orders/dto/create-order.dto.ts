@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsArray, ValidateNested } from 'class-validator';
+import { IsString, IsNumber, IsArray, ValidateNested, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateOrderItemDto {
@@ -14,4 +14,10 @@ export class CreateOrderDto {
   @ValidateNested({ each: true })
   @Type(() => CreateOrderItemDto)
   items: CreateOrderItemDto[];
+
+  // --- เพิ่มส่วนนี้: รับค่าวันที่ส่งมาจาก Frontend ---
+  @IsOptional()
+  @IsString()
+  received_date?: string;
+  // -------------------------------------------
 }
