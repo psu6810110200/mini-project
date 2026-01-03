@@ -36,7 +36,7 @@ export interface Weapon {
   description: string;
   price: number;
   stock: number;
-  category: WeaponCategory; // ตรงนี้ยังใช้ได้เหมือนเดิมเป๊ะ
+  category: WeaponCategory;
   required_license_level: number;
   updated_at?: string;
   image?: string;
@@ -57,7 +57,7 @@ export interface OrderItem {
   id: string;
   quantity: number;
   price_at_purchase: number;
-  weapon: Weapon; // หรือ Weapon ในแบบย่อ
+  weapon: Weapon;
 }
 
 export interface Order {

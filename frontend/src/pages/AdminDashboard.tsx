@@ -1,5 +1,7 @@
 // src/pages/AdminDashboard.tsx
 import React, { useEffect, useState } from 'react';
+import './AdminDashboard.css'; 
+
 import { getWeapons, createWeapon, updateWeapon, deleteWeapon } from '../api/weaponApi';
 import { getAllOrders, updateOrderStatus } from '../api/orderApi';
 import type { Weapon, WeaponPayload, Order } from '../types';
@@ -41,8 +43,6 @@ const AdminDashboard = () => {
     try {
       setLoadingWeapons(true);
       const response = await getWeapons({ page: 1, limit: 100 }); 
-    
-      // 2. ดึง .data ออกมาจาก response ก่อนนำไปใส่ State
       setWeapons(response.data);
     } catch (error) {
       toast.error('ไม่สามารถดึงข้อมูลอาวุธได้');
@@ -71,7 +71,7 @@ const AdminDashboard = () => {
     }
   }, [activeTab]);
 
-  // --- Handlers: Weapon ---
+  // --- Handlers ---
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -137,7 +137,6 @@ const AdminDashboard = () => {
     });
   };
 
-  // --- Handlers: Order ---
   const handleStatusUpdate = async (id: string, newStatus: OrderStatus) => {
     if (!confirm(`ยืนยันเปลี่ยนสถานะเป็น ${newStatus}?`)) return;
     try {
@@ -150,85 +149,75 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="container" style={{ marginTop: '20px', color: '#000' }}> 
-      <h1 style={{ color: 'white' }}>Admin Dashboard</h1>
+    <div className="admin-container">
+      <h1 className="admin-header">🛡️ Admin Dashboard</h1>
 
       {/* Tab Menu */}
-      <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+      <div className="tab-menu">
         <button 
+          className={`tab-btn ${activeTab === 'weapons' ? 'active' : ''}`}
           onClick={() => setActiveTab('weapons')}
-          style={{ 
-            padding: '10px 20px', 
-            cursor: 'pointer',
-            backgroundColor: activeTab === 'weapons' ? '#ffc107' : '#ddd',
-            border: 'none', borderRadius: '5px', fontWeight: 'bold'
-          }}
         >
-          จัดการคลังอาวุธ
+          จัดการคลังอาวุธ 🔫
         </button>
         <button 
+          className={`tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
           onClick={() => setActiveTab('orders')}
-          style={{ 
-            padding: '10px 20px', 
-            cursor: 'pointer',
-            backgroundColor: activeTab === 'orders' ? '#ffc107' : '#ddd',
-            border: 'none', borderRadius: '5px', fontWeight: 'bold'
-          }}
         >
-          ตรวจสอบคำสั่งซื้อ
+          ตรวจสอบคำสั่งซื้อ 📋
         </button>
       </div>
 
       {/* ==================== WEAPONS TAB ==================== */}
       {activeTab === 'weapons' && (
         <>
-          <div className="card" style={{ padding: '20px', marginBottom: '30px', backgroundColor: '#f9f9f9', border: '1px solid #ddd' }}>
-            <h3>{isEditing ? 'แก้ไขอาวุธ' : 'เพิ่มอาวุธใหม่'}</h3>
-            <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr' }}>
+          <div className="dark-card">
+            <h3>{isEditing ? '🔧 แก้ไขอาวุธ' : '➕ เพิ่มอาวุธใหม่'}</h3>
+            <form onSubmit={handleSubmit} className="form-grid">
               
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label>ชื่ออาวุธ:</label>
-                <input type="text" name="name" value={formData.name} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
+              <div className="form-group full-width">
+                <label className="form-label">ชื่ออาวุธ:</label>
+                <input type="text" name="name" value={formData.name} onChange={handleChange} required className="form-input" placeholder="Ex. M4A1 Carbine" />
               </div>
 
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label>URL รูปภาพ:</label>
-                <input type="text" name="image" value={formData.image || ''} onChange={handleChange} placeholder="https://..." style={{ width: '100%', padding: '8px' }} />
+              <div className="form-group full-width">
+                <label className="form-label">URL รูปภาพ:</label>
+                <input type="text" name="image" value={formData.image || ''} onChange={handleChange} placeholder="https://..." className="form-input" />
               </div>
 
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label>รายละเอียด:</label>
-                <textarea name="description" value={formData.description} onChange={handleChange} required rows={3} style={{ width: '100%', padding: '8px' }} />
+              <div className="form-group full-width">
+                <label className="form-label">รายละเอียด:</label>
+                <textarea name="description" value={formData.description} onChange={handleChange} required rows={3} className="form-textarea" placeholder="รายละเอียดของอาวุธ..." />
               </div>
               
-              <div>
-                <label>ราคา ($):</label>
-                <input type="number" name="price" value={formData.price} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
+              <div className="form-group">
+                <label className="form-label">ราคา ($):</label>
+                <input type="number" name="price" value={formData.price} onChange={handleChange} required className="form-input" />
               </div>
-              <div>
-                <label>Stock:</label>
-                <input type="number" name="stock" value={formData.stock} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
+              <div className="form-group">
+                <label className="form-label">Stock:</label>
+                <input type="number" name="stock" value={formData.stock} onChange={handleChange} required className="form-input" />
               </div>
               
-              <div>
-                <label>หมวดหมู่:</label>
-                <select name="category" value={formData.category} onChange={handleChange} style={{ width: '100%', padding: '8px' }}>
+              <div className="form-group">
+                <label className="form-label">หมวดหมู่:</label>
+                <select name="category" value={formData.category} onChange={handleChange} className="form-select">
                   <option value="light">Light</option>
                   <option value="heavy">Heavy</option>
                   <option value="explosive">Explosive</option>
                 </select>
               </div>
-              <div>
-                <label>License Level:</label>
-                <input type="number" name="required_license_level" value={formData.required_license_level} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
+              <div className="form-group">
+                <label className="form-label">License Level:</label>
+                <input type="number" name="required_license_level" value={formData.required_license_level} onChange={handleChange} required className="form-input" />
               </div>
               
-              <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
-                <button type="submit" style={{ backgroundColor: '#28a745', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', marginRight: '10px' }}>
-                  {isEditing ? 'บันทึกการแก้ไข' : 'เพิ่มอาวุธ'}
+              <div className="form-group full-width" style={{ marginTop: '10px' }}>
+                <button type="submit" className="btn-submit" style={{ marginRight: '10px' }}>
+                  {isEditing ? 'บันทึกการแก้ไข' : 'ยืนยันเพิ่มอาวุธ'}
                 </button>
                 {isEditing && (
-                  <button type="button" onClick={resetForm} style={{ backgroundColor: '#6c757d', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+                  <button type="button" onClick={resetForm} className="btn-cancel">
                     ยกเลิก
                   </button>
                 )}
@@ -236,61 +225,134 @@ const AdminDashboard = () => {
             </form>
           </div>
 
-          <div className="card" style={{ marginTop: '20px', overflowX: 'auto', backgroundColor: 'white', padding: '20px', borderRadius: '8px' }}>
-            <h3>รายการอาวุธทั้งหมด ({weapons.length})</h3>
-            {loadingWeapons ? <p>Loading...</p> : (
-              <table border={1} cellPadding={10} style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+          <div className="dark-card">
+            <h3>📦 รายการอาวุธทั้งหมด ({weapons.length})</h3>
+            <div className="table-container">
+              {loadingWeapons ? <p style={{color: '#aaa'}}>Loading data...</p> : (
+                <table className="cyber-table">
+                  <thead>
+                    <tr>
+                      <th style={{width: '80px'}}>รูป</th>
+                      <th>ชื่อ</th>
+                      <th>ราคา</th>
+                      <th>Stock</th>
+                      <th>License</th>
+                      <th style={{ textAlign: 'center' }}>จัดการ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {weapons.map((w) => (
+                      <tr key={w.id}>
+                        <td style={{ textAlign: 'center' }}>
+                          {w.image ? (
+                            <img src={w.image} alt={w.name} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #444' }} />
+                          ) : (
+                            <span style={{color: '#555'}}>-</span>
+                          )}
+                        </td>
+                        <td style={{ fontWeight: 'bold' }}>{w.name}</td>
+                        <td style={{ color: '#28a745' }}>${Number(w.price).toLocaleString()}</td>
+                        <td style={{ color: w.stock < 5 ? '#dc3545' : 'inherit' }}>{w.stock}</td>
+                        <td style={{textAlign: 'center'}}>{w.required_license_level}</td>
+                        <td style={{textAlign: 'center'}}>
+                          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                            <button 
+                              onClick={() => startEdit(w)} 
+                              className="btn-action"
+                              style={{ backgroundColor: '#ffc107', color: 'black' }}
+                            >
+                              ✏️
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(w.id)} 
+                              className="btn-action"
+                              style={{ backgroundColor: '#dc3545', color: 'white' }}
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ==================== ORDERS TAB ==================== */}
+      {activeTab === 'orders' && (
+        <div className="dark-card">
+          <h3>🛒 รายการคำสั่งซื้อ ({orders.length})</h3>
+          <div className="table-container">
+            {loadingOrders ? <p style={{color: '#aaa'}}>Loading orders...</p> : (
+              <table className="cyber-table">
                 <thead>
-                  <tr style={{ backgroundColor: '#eee' }}>
-                    <th>รูป</th>
-                    <th>ชื่อ</th>
-                    <th>ราคา</th>
-                    <th>Stock</th>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>ลูกค้า</th>
                     <th>License</th>
-                    <th style={{ textAlign: 'center' }}>จัดการ</th>
+                    <th>รายการสินค้า</th>
+                    <th>ยอดรวม</th>
+                    <th>สถานะ</th>
+                    <th style={{ textAlign: 'center' }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {weapons.map((w) => (
-                    <tr key={w.id}>
-                      <td style={{ textAlign: 'center' }}>
-                        {w.image ? <img src={w.image} alt="p" style={{ width: '50px', height: '50px', objectFit: 'cover' }} /> : '-'}
+                  {orders.map((order) => (
+                    <tr key={order.id}>
+                      <td><small style={{color:'#777'}}>{order.id.substring(0, 8)}...</small></td>
+                      <td>{order.user?.username || 'Unknown User'}</td>
+                      <td style={{ color: order.user?.license_number ? '#007bff' : '#555', textAlign: 'center', fontWeight: 'bold' }}>
+                        {order.user?.license_number || 'N/A'}
                       </td>
-                      <td>{w.name}</td>
-                      <td>${Number(w.price).toLocaleString()}</td>
-                      <td>{w.stock}</td>
-                      <td style={{textAlign: 'center'}}>{w.required_license_level}</td>
-                      <td style={{textAlign: 'center'}}>
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-                          <button 
-                            onClick={() => startEdit(w)} 
-                            style={{ 
-                              cursor: 'pointer',
-                              backgroundColor: '#ffc107', // สีเหลือง
-                              color: 'black',
-                              border: 'none',
-                              borderRadius: '5px',
-                              padding: '5px 10px',
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            ✏️ แก้ไข
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(w.id)} 
-                            style={{ 
-                              cursor: 'pointer',
-                              backgroundColor: '#dc3545', // สีแดง
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '5px',
-                              padding: '5px 10px',
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            🗑️ ลบ
-                          </button>
-                        </div>
+                      <td>
+                        <ul style={{ paddingLeft: '20px', margin: 0, fontSize: '0.9rem', color: '#ccc' }}>
+                          {order.order_items?.map((item) => (
+                            <li key={item.id}>
+                              {item.weapon?.name} <span style={{color: '#888'}}>x{item.quantity}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </td>
+                      <td style={{ color: '#28a745', fontWeight: 'bold' }}>${Number(order.total_price).toLocaleString()}</td>
+                      <td>
+                        <span className="status-badge" style={{
+                          backgroundColor: 
+                            order.status === OrderStatus.APPROVED ? 'rgba(40, 167, 69, 0.2)' : 
+                            order.status === OrderStatus.REJECTED ? 'rgba(220, 53, 69, 0.2)' : 'rgba(255, 193, 7, 0.2)',
+                          color: 
+                            order.status === OrderStatus.APPROVED ? '#28a745' : 
+                            order.status === OrderStatus.REJECTED ? '#dc3545' : '#ffc107'
+                        }}>
+                          {order.status.toUpperCase()}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {order.status === OrderStatus.PENDING ? (
+                          <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                            <button 
+                              onClick={() => handleStatusUpdate(order.id, OrderStatus.APPROVED)}
+                              className="btn-action"
+                              style={{ backgroundColor: '#28a745', fontSize: '0.8rem' }}
+                              title="Approve"
+                            >
+                              ✓
+                            </button>
+                            <button 
+                              onClick={() => handleStatusUpdate(order.id, OrderStatus.REJECTED)}
+                              className="btn-action"
+                              style={{ backgroundColor: '#dc3545', fontSize: '0.8rem' }}
+                              title="Reject"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <span style={{ color: '#555', fontStyle: 'italic', fontSize: '0.8rem' }}>-</span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -298,98 +360,6 @@ const AdminDashboard = () => {
               </table>
             )}
           </div>
-        </>
-      )}
-
-      {/* ==================== ORDERS TAB ==================== */}
-      {activeTab === 'orders' && (
-        <div className="card" style={{ marginTop: '20px', overflowX: 'auto', backgroundColor: 'white', padding: '20px', borderRadius: '8px' }}>
-          <h3>รายการคำสั่งซื้อ ({orders.length})</h3>
-          {loadingOrders ? <p>Loading...</p> : (
-            <table border={1} cellPadding={10} style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#eee' }}>
-                  <th>Order ID</th>
-                  <th>ลูกค้า</th>
-                  <th>License</th>
-                  <th>รายการสินค้า</th>
-                  <th>ยอดรวม</th>
-                  <th>สถานะ</th>
-                  <th style={{ textAlign: 'center' }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((order) => (
-                  <tr key={order.id}>
-                    <td><small>{order.id.substring(0, 8)}...</small></td>
-                    <td>{order.user?.username || 'Unknown User'}</td>
-                    <td style={{ color: order.user?.license_number ? 'blue' : '#ccc', textAlign: 'center', fontWeight: 'bold' }}>
-                      {order.user?.license_number || '-'}
-                    </td>
-                    <td>
-                      <ul style={{ paddingLeft: '20px', margin: 0, fontSize: '0.9rem' }}>
-                        {order.order_items?.map((item) => (
-                          <li key={item.id}>
-                            {item.weapon?.name} x {item.quantity}
-                          </li>
-                        ))}
-                      </ul>
-                    </td>
-                    <td><strong>${Number(order.total_price).toLocaleString()}</strong></td>
-                    <td>
-                      <span style={{
-                        padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold',
-                        backgroundColor: 
-                          order.status === OrderStatus.APPROVED ? '#ccffcc' : 
-                          order.status === OrderStatus.REJECTED ? '#ffcccc' : '#fff3cd',
-                        color: 
-                          order.status === OrderStatus.APPROVED ? 'green' : 
-                          order.status === OrderStatus.REJECTED ? 'red' : '#856404'
-                      }}>
-                        {order.status.toUpperCase()}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      {order.status === OrderStatus.PENDING ? (
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-                          <button 
-                            onClick={() => handleStatusUpdate(order.id, OrderStatus.APPROVED)}
-                            style={{ 
-                              backgroundColor: '#28a745', // สีเขียว
-                              color: 'white', 
-                              border: 'none', 
-                              padding: '5px 10px', 
-                              borderRadius: '5px', 
-                              cursor: 'pointer',
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            Approve
-                          </button>
-                          <button 
-                            onClick={() => handleStatusUpdate(order.id, OrderStatus.REJECTED)}
-                            style={{ 
-                              backgroundColor: '#dc3545', // สีแดง
-                              color: 'white', 
-                              border: 'none', 
-                              padding: '5px 10px', 
-                              borderRadius: '5px', 
-                              cursor: 'pointer',
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      ) : (
-                        <span style={{ color: '#999', fontStyle: 'italic' }}>ดำเนินการแล้ว</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
         </div>
       )}
     </div>
