@@ -4,6 +4,11 @@ export interface UserProfile {
   id: string;
   username: string;
   role: 'admin' | 'user';
+  // --- ส่วนที่เพิ่มใหม่ ---
+  license_number?: string; 
+  license_image?: string; 
+  is_verified: boolean;
+  // --------------------
 }
 
 export interface LoginResponse {
@@ -40,6 +45,7 @@ export interface Weapon {
   updated_at?: string;
   image?: string;
 }
+
 export interface CartItem extends Weapon {
   quantity: number;
 }
@@ -64,6 +70,7 @@ export interface Order {
   total_price: number;
   status: OrderStatus;
   created_at: string;
-  received_date?: string; // --- เพิ่มบรรทัดนี้ ---
+  received_date?: string;
   order_items: OrderItem[];
+  user?: UserProfile; // เพิ่ม ? เผื่อไว้กรณีดู order ที่ไม่มี user หรือ user ถูกลบ
 }

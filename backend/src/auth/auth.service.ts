@@ -1,9 +1,9 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt'; // ตัวช่วย Hash Password
-import { CreateAuthDto } from './dto/create-auth.dto'; // ใช้ DTO ที่ Nest สร้างมาให้ (หรือสร้างใหม่ก็ได้)
-import { LoginAuthDto } from './dto/login-auth.dto'; // *ต้องสร้างไฟล์นี้เพิ่ม หรือใช้ Any ไปก่อนก็ได้
+import * as bcrypt from 'bcrypt';
+import { CreateAuthDto } from './dto/create-auth.dto';
+import { LoginAuthDto } from './dto/login-auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -12,19 +12,24 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // --- 1. Register ---
-  async register(createAuthDto: CreateAuthDto) {
-    // เช็คก่อนว่า Username ซ้ำไหม (ต้องไปเขียน func findOneByUsername ใน UsersService เพิ่มทีหลัง)
-    // แต่ตอนนี้ข้ามไปก่อน
+  // --- 1. Register (เพิ่ม parameter filename) ---
+  async register(createAuthDto: CreateAuthDto, filename: string | null) {
+    // 1. ตรวจสอบ Username ซ้ำ
+    const existingUser = await this.usersService.findByUsername(createAuthDto.username);
+    if (existingUser) {
+      throw new UnauthorizedException('Username นี้ถูกใช้งานแล้ว');
+    }
     
-    // Hash Password
+    // 2. Hash Password
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(createAuthDto.password, salt);
 
-    // สร้าง User ใหม่ (ส่ง password ที่ hash แล้วไปเก็บ)
+    // 3. สร้าง User ใหม่ พร้อมชื่อไฟล์รูป
     const newUser = await this.usersService.create({
       ...createAuthDto,
-      password_hash: hashedPassword, // map ให้ตรงกับ field ใน Entity
+      password_hash: hashedPassword,
+      license_image: filename, // บันทึกชื่อไฟล์
+      is_verified: false, // บังคับเป็น false ไว้ก่อน
     });
 
     return newUser;
@@ -32,29 +37,33 @@ export class AuthService {
 
   // --- 2. Login ---
   async login(loginAuthDto: LoginAuthDto) {
-    // ค้นหา User จาก username
-    // หมายเหตุ: คุณต้องไปเพิ่ม method findByUsername ใน UsersService ก่อนนะ!
     const user = await this.usersService.findByUsername(loginAuthDto.username); 
 
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
-    // ตรวจสอบ Password
     const isPasswordValid = await bcrypt.compare(loginAuthDto.password, user.password_hash);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid password');
     }
 
-    // ถ้าผ่านหมด ให้สร้าง Token
-    const payload = { username: user.username, sub: user.id, role: user.role };
+    const payload = { 
+      username: user.username, 
+      sub: user.id, 
+      role: user.role,
+      is_verified: user.is_verified // ใส่สถานะลงใน token ด้วยก็ได้เผื่อ Frontend ใช้
+    };
+    
     return {
       access_token: this.jwtService.sign(payload),
       user: {
         id: user.id,
         username: user.username,
-        role: user.role
+        role: user.role,
+        is_verified: user.is_verified,
+        license_image: user.license_image
       }
     };
   }

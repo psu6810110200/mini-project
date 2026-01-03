@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { Order, OrderStatus } from './entities/order.entity';
@@ -10,14 +10,14 @@ import { User } from '../users/entities/user.entity';
 export class OrdersService {
   constructor(private dataSource: DataSource) {}
 
-  // --- ฟังก์ชันสร้าง Order (ตัดสต็อก + เช็ค License) ---
-  async create(createOrderDto: CreateOrderDto, user: any) { // user มาจาก req.user
+  // --- ฟังก์ชันสร้าง Order (ตัดสต็อก + เช็ค License + เช็ค Verified) ---
+  async create(createOrderDto: CreateOrderDto, user: any) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      // 1. ดึงข้อมูล User ล่าสุดเพื่อเช็ค License Number
+      // 1. ดึงข้อมูล User ล่าสุด
       const customer = await queryRunner.manager.findOne(User, { 
         where: { id: user.id || user.userId } 
       });
@@ -26,20 +26,23 @@ export class OrdersService {
         throw new NotFoundException('ไม่พบข้อมูลผู้ใช้งาน');
       }
 
-      // 2. แปลง License Number เป็นตัวเลข (ถ้าไม่มี/ไม่ใช่ตัวเลข ให้เป็น 0)
+      // --- เพิ่ม: ตรวจสอบสถานะ Verified ---
+      if (!customer.is_verified) {
+        throw new ForbiddenException('บัญชีของคุณยังไม่ได้รับการอนุมัติ กรุณารอแอดมินตรวจสอบเอกสาร');
+      }
+
+      // 2. แปลง License Number เป็นตัวเลข
       const customerLevel = customer.license_number && !isNaN(Number(customer.license_number))
         ? Number(customer.license_number)
         : 0;
 
-      // --- จุดแก้ไขที่ 1: รับค่า received_date มาด้วย ---
       const { items, received_date } = createOrderDto;
-      // ---------------------------------------------
-
+      
       let calculatedTotalPrice = 0;
       const newOrderItems: OrderItem[] = [];
 
       for (const itemDto of items) {
-        // 3. ดึงข้อมูลอาวุธ (Lock เพื่อกันแย่งกันซื้อ)
+        // 3. ดึงข้อมูลอาวุธ
         const weapon = await queryRunner.manager.findOne(Weapon, { 
           where: { id: itemDto.weaponId },
           lock: { mode: 'pessimistic_write' } 
@@ -49,7 +52,7 @@ export class OrdersService {
           throw new NotFoundException(`ไม่พบอาวุธ ID: ${itemDto.weaponId}`);
         }
 
-        // --- เพิ่มการตรวจสอบ License Level ---
+        // เช็ค License Level
         if (weapon.required_license_level > customerLevel) {
           throw new BadRequestException(
             `ใบอนุญาตของคุณ (Level ${customerLevel}) ไม่เพียงพอสำหรับซื้อ "${weapon.name}" (ต้องการ Level ${weapon.required_license_level})`
@@ -67,9 +70,9 @@ export class OrdersService {
 
         calculatedTotalPrice += Number(weapon.price) * itemDto.quantity;
 
-        // 6. สร้างรายการสินค้า (OrderItem)
+        // 6. สร้าง OrderItem
         const orderItem = new OrderItem();
-        orderItem.weapon = weapon; // Link กับ Weapon
+        orderItem.weapon = weapon;
         orderItem.quantity = itemDto.quantity;
         orderItem.price_at_purchase = Number(weapon.price);
         
@@ -78,16 +81,14 @@ export class OrdersService {
 
       // 7. สร้าง Order หลัก
       const order = new Order();
-      order.user = customer; // Link กับ User
+      order.user = customer;
       order.total_price = calculatedTotalPrice;
       order.status = OrderStatus.PENDING;
       order.order_items = newOrderItems;
 
-      // --- จุดแก้ไขที่ 2: กำหนดค่า received_date ลงใน Order ---
       if (received_date) {
         order.received_date = received_date;
       }
-      // ----------------------------------------------------
 
       // 8. บันทึกลง Database
       const savedOrder = await queryRunner.manager.save(Order, order);
@@ -108,16 +109,13 @@ export class OrdersService {
     }
   }
 
-  // --- ฟังก์ชันดึง Order ทั้งหมด (สำหรับ Admin) ---
   async findAll() {
     return this.dataSource.getRepository(Order).find({
-      // ✅ จุดสำคัญ: ต้องใส่ relations เพื่อให้ Admin เห็นข้อมูล User และ สินค้า
       relations: ['user', 'order_items', 'order_items.weapon'], 
       order: { created_at: 'DESC' },
     });
   }
 
-  // --- ฟังก์ชันดึง Order ของตัวเอง (สำหรับ User) ---
   async findMyOrders(user: any) {
     const userId = user.id || user.userId;
     return this.dataSource.getRepository(Order).find({
@@ -136,7 +134,6 @@ export class OrdersService {
     return order;
   }
 
-  // --- ฟังก์ชันอัปเดตสถานะ (Approve/Reject) ---
   async updateStatus(id: string, status: OrderStatus) {
     const order = await this.findOne(id);
     order.status = status;

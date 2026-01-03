@@ -1,17 +1,17 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
-import { Order } from '../../orders/entities/order.entity'; // เดี๋ยวเราจะไปสร้าง Order ทีหลัง แต่ import ไว้ก่อน
+import { Order } from '../../orders/entities/order.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
   USER = 'user',
 }
 
-@Entity('users') // ชื่อตารางใน Database
+@Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ length: 100 })
+  @Column({ length: 100, unique: true }) // ควรใส่ unique true กันชื่อซ้ำ
   username: string;
 
   @Column({ length: 255 })
@@ -24,8 +24,12 @@ export class User {
   })
   role: UserRole;
 
-  @Column({ length: 50, nullable: true }) // nullable: true เพราะ admin อาจไม่ต้องมี license
+  @Column({ length: 50, nullable: true })
   license_number: string;
+
+  // --- เพิ่มใหม่: เก็บชื่อไฟล์รูปภาพ ---
+  @Column({ nullable: true })
+  license_image: string;
 
   @Column({ default: false })
   is_verified: boolean;
@@ -33,7 +37,6 @@ export class User {
   @CreateDateColumn()
   created_at: Date;
 
-  // ความสัมพันธ์ One-to-Many: User 1 คน มีได้หลาย Order
   @OneToMany(() => Order, (order) => order.user)
   orders: Order[];
 }
