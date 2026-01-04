@@ -63,7 +63,8 @@ export class AuthService {
         username: user.username,
         role: user.role,
         is_verified: user.is_verified,
-        license_image: user.license_image
+        license_image: user.license_image,
+        license_number: user.license_number
       }
     };
   }
