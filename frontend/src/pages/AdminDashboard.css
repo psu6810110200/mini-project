@@ -16,7 +16,7 @@
   max-width: 1200px;
   margin: 40px auto;
   padding: 0 20px;
-  font-family: 'Sarabun', sans-serif; /* แนะนำให้ใช้ฟอนต์สวยๆ */
+  font-family: 'Sarabun', sans-serif;
   color: var(--text-primary);
 }
 
@@ -107,6 +107,9 @@
   border-radius: 4px;
   color: white;
   transition: border 0.3s;
+  
+  /* ✅ เพิ่ม: ฟอนต์ 16px ป้องกัน iPhone ซูมหน้าจอเองตอนพิมพ์ */
+  font-size: 16px; 
 }
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
@@ -171,4 +174,47 @@
   font-weight: bold;
   text-transform: uppercase;
   display: inline-block;
+}
+
+/* --- ส่วนที่เพิ่มสำหรับ Mobile --- */
+@media (max-width: 768px) {
+  /* บีบ Layout ของ Form ให้เหลือคอลัมน์เดียว */
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ปรับปุ่ม Tab เมนูให้เรียงสวยๆ */
+  .tab-menu {
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    flex: 1 0 45%; 
+    text-align: center;
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+
+  /* ปรับตารางให้เลื่อนซ้ายขวาได้ */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* ลดขนาด Padding ของ Card */
+  .dark-card {
+    padding: 15px;
+  }
+  
+  /* ✅ เพิ่ม: ระยะขอบ Safe Area */
+  .admin-container {
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+  }
+
+  /* ✅ เพิ่ม: ขยายปุ่ม Action ให้จิ้มง่ายขึ้นบนจอสัมผัส */
+  .btn-action {
+    padding: 8px 16px;
+    min-width: 44px;
+    min-height: 44px;
+  }
 }

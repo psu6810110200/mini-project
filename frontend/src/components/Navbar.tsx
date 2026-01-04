@@ -3,13 +3,15 @@ import React, { useState, useContext, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
-import logo from '../assets/logowws.png'; 
+import logo from '../assets/logowws.png';
+import './Navbar.css';
 
 const Navbar = () => {
   const auth = useContext(AuthContext);
   const cart = useContext(CartContext);
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -19,6 +21,8 @@ const Navbar = () => {
     if (auth?.logout) {
       auth.logout();
       navigate('/login');
+      setIsDropdownOpen(false);
+      setIsMobileMenuOpen(false);
     }
   };
 
@@ -34,210 +38,76 @@ const Navbar = () => {
     };
   }, []);
 
-  if (!auth?.isAuthenticated) return null; 
+  if (!auth?.isAuthenticated) return null;
 
   return (
-    <nav style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '10px 30px',
-      backgroundColor: '#000000',
-      borderBottom: '1px solid #333',
-      color: 'white',
-      position: 'sticky',
-      top: 0,
-      zIndex: 1000,
-      boxShadow: '0 4px 10px rgba(0,0,0,0.5)'
-    }}>
-      
-      {/* --- LEFT: LOGO --- */}
-      <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', gap: '12px' }}>
-        <img 
-          src={logo} 
-          alt="Logo" 
-          style={{ height: '45px', objectFit: 'contain', filter: 'drop-shadow(0 0 5px rgba(255, 193, 7, 0.3))' }} 
-        />
-        <span style={{ 
-          color: '#ffc107', 
-          fontSize: '1.6rem', 
-          fontWeight: '900', 
-          letterSpacing: '1px',
-          textTransform: 'uppercase',
-          fontFamily: 'Impact, sans-serif'
-        }}>
-          WAR WEAPON SHOP
-        </span>
+    <nav className="navbar">
+      {/* 1. LOGO (จะถูกดันไปซ้ายสุดด้วย CSS margin-right: auto) */}
+      <Link to="/" className="navbar-brand">
+        <img src={logo} alt="Logo" className="brand-logo" />
+        <span className="brand-text">WAR WEAPON SHOP</span>
       </Link>
 
-      {/* --- RIGHT: MENU & PROFILE --- */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
-
-        {/* Home */}
-        <Link to="/" style={navLinkStyle}>
-          <span style={{ fontSize: '1.2rem' }}>🏠</span>
-          <span>หน้าหลัก</span>
+      {/* 2. MENU LINKS (จะถูกดันไปขวา ไปกองรวมกับ Profile) */}
+      <div className={`navbar-center-menu ${isMobileMenuOpen ? 'active' : ''}`}>
+        <Link to="/" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+          <span>🏠</span> หน้าหลัก
         </Link>
         
-        {/* Cart */}
-        <Link to="/cart" style={{ ...navLinkStyle, position: 'relative' }}>
-          <span style={{ fontSize: '1.2rem' }}>🛒</span>
-          <span>ตะกร้า</span>
-          
+        <Link to="/cart" className="nav-link" style={{ position: 'relative' }} onClick={() => setIsMobileMenuOpen(false)}>
+          <span>🛒</span> ตะกร้า
           {cart && cart.totalItems > 0 && (
-            <span style={{ 
-              position: 'absolute',
-              top: '-8px',
-              right: '-10px',
-              backgroundColor: '#dc3545', 
-              color: 'white', 
-              borderRadius: '50%', 
-              padding: '2px 6px', 
-              fontSize: '0.75rem', 
-              fontWeight: 'bold',
-              minWidth: '18px', 
-              textAlign: 'center',
-              boxShadow: '0 2px 5px rgba(0,0,0,0.5)',
-              border: '1px solid #fff'
-            }}>
-              {cart.totalItems}
-            </span>
+            <span className="cart-badge">{cart.totalItems}</span>
           )}
         </Link>
         
-        {/* Admin Dashboard */}
         {user?.role === 'admin' && (
-           <Link to="/admin" style={{ 
-             color: '#dc3545', 
-             textDecoration: 'none', 
-             fontWeight: 'bold', 
-             border: '1px solid #dc3545', 
-             padding: '6px 12px', 
-             borderRadius: '5px',
-             display: 'flex',
-             alignItems: 'center',
-             gap: '5px',
-             transition: 'all 0.3s'
-           }}>
+           <Link to="/admin" className="nav-link admin-link" onClick={() => setIsMobileMenuOpen(false)}>
              ⚙️ Admin Dashboard
            </Link>
         )}
+      </div>
 
-        <div style={{ borderLeft: '1px solid #444', height: '35px', margin: '0 5px' }}></div>
-
-        {/* USER PROFILE (Dropdown) */}
-        <div style={{ position: 'relative' }} ref={dropdownRef}>
+      {/* 3. RIGHT ACTIONS (Profile & Hamburger) */}
+      <div className="navbar-right-actions">
+        
+        {/* Profile Dropdown */}
+        <div className="profile-container" ref={dropdownRef}>
           <div 
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '10px', 
-              cursor: 'pointer',
-              padding: '5px 8px',
-              borderRadius: '50px',
-              transition: 'background 0.2s',
-              border: isDropdownOpen ? '1px solid #ffc107' : '1px solid transparent'
-            }}
+            className="profile-trigger"
           >
-            {/* Avatar */}
-            <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              backgroundColor: '#333',
-              border: '2px solid #ffc107',
-              color: '#ffc107',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              fontWeight: 'bold',
-              fontSize: '1.2rem'
-            }}>
+            <div className="profile-avatar">
               {user?.username ? user.username.charAt(0).toUpperCase() : '?'}
             </div>
           </div>
 
-          {/* --- Dropdown Body --- */}
+          {/* Dropdown Content */}
           {isDropdownOpen && (
-            <div style={{
-              position: 'absolute',
-              top: '55px',
-              right: '0',
-              width: '260px',
-              backgroundColor: '#1a1a1a',
-              border: '1px solid #444',
-              borderRadius: '10px',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.8)',
-              overflow: 'hidden',
-              padding: '10px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '5px',
-              zIndex: 1100
-            }}>
-              {/* Header */}
-              <div style={{ padding: '5px 10px 15px 10px', borderBottom: '1px solid #333', marginBottom: '5px' }}>
-                <p style={{ margin: 0, color: '#fff', fontWeight: 'bold', fontSize: '1.1rem' }}>{user?.username}</p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '5px' }}>
-                  <span style={{ color: '#aaa', fontSize: '0.85rem' }}>Role: {user?.role}</span>
-                  {user?.is_verified ? (
-                    <span style={{ color: '#28a745', fontSize: '0.75rem', border: '1px solid #28a745', padding: '1px 5px', borderRadius: '4px' }}>✓ Verified</span>
-                  ) : (
-                    <span style={{ color: '#ffc107', fontSize: '0.75rem', border: '1px solid #ffc107', padding: '1px 5px', borderRadius: '4px' }}>⏳ Pending</span>
-                  )}
-                </div>
+            <div className="profile-dropdown-menu">
+              <div className="dropdown-header">
+                <strong>{user?.username}</strong>
+                <div className="dropdown-role">{user?.role}</div>
               </div>
-
-              {/* ✅ Link ไป Profile Page */}
-              <Link to="/profile" style={menuItemStyle}>👤 ข้อมูลส่วนตัว (My Profile)</Link>
-              
-              <Link to="/orders" style={menuItemStyle}>📜 ประวัติการสั่งซื้อ (Orders)</Link>
-
-              <div 
-                onClick={handleLogout}
-                style={{
-                  ...menuItemStyle,
-                  color: '#dc3545',
-                  fontWeight: 'bold',
-                  marginTop: '5px',
-                  borderTop: '1px solid #333',
-                  paddingTop: '12px'
-                }}
-              >
+              <Link to="/profile" className="dropdown-item" onClick={() => setIsDropdownOpen(false)}>👤 ข้อมูลส่วนตัว</Link>
+              <Link to="/orders" className="dropdown-item" onClick={() => setIsDropdownOpen(false)}>📜 ประวัติการสั่งซื้อ</Link>
+              <div onClick={handleLogout} className="dropdown-item logout">
                 🚪 ออกจากระบบ
               </div>
             </div>
           )}
         </div>
 
+        {/* ปุ่ม Hamburger (โชว์เฉพาะมือถือ) */}
+        <button 
+          className="hamburger-btn" 
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? '✖' : '☰'}
+        </button>
       </div>
     </nav>
   );
-};
-
-// Styles
-const navLinkStyle: React.CSSProperties = {
-  textDecoration: 'none', 
-  color: '#e0e0e0', 
-  fontWeight: '500', 
-  display: 'flex', 
-  alignItems: 'center', 
-  gap: '8px',
-  padding: '8px 12px',
-  borderRadius: '8px',
-  transition: 'all 0.2s ease-in-out',
-};
-
-const menuItemStyle: React.CSSProperties = {
-  display: 'block',
-  padding: '10px 12px',
-  color: '#ccc',
-  textDecoration: 'none',
-  borderRadius: '6px',
-  cursor: 'pointer',
-  fontSize: '0.95rem',
-  transition: 'background-color 0.2s',
 };
 
 export default Navbar;

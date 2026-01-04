@@ -1,0 +1,227 @@
+/* src/components/Navbar.css */
+
+/* --- Layout หลัก (Desktop & iPad) --- */
+.navbar {
+  display: flex;
+  align-items: center;
+  /* ✅ เปลี่ยน: เพิ่ม Padding ด้านข้างให้เยอะขึ้น เพื่อดันโปรไฟล์หนีขอบจอ */
+  padding: 15px 50px; 
+  background-color: #000000;
+  border-bottom: 1px solid #333;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  
+  /* รองรับ iPhone Notch และ Safe Area */
+  padding-top: calc(15px + env(safe-area-inset-top));
+  padding-left: max(50px, env(safe-area-inset-left));
+  padding-right: max(50px, env(safe-area-inset-right));
+  
+  /* ✅ เพิ่ม: gap ระหว่างเมนูกับโปรไฟล์ */
+  gap: 30px; 
+}
+
+/* --- Brand (Logo) --- */
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  gap: 12px;
+  z-index: 1002;
+  
+  /* ⭐ สำคัญ: คำสั่งนี้จะดัน (Push) เมนูและโปรไฟล์ไปทางขวาสุดทั้งหมด */
+  margin-right: auto; 
+}
+
+.brand-logo {
+  height: 45px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 5px rgba(255, 193, 7, 0.3));
+}
+
+.brand-text {
+  color: #ffc107;
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-family: Impact, sans-serif;
+}
+
+/* --- Center Menu (Links: หน้าหลัก, ตะกร้า) --- */
+.navbar-center-menu {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* ระยะห่างระหว่างปุ่มเมนู */
+}
+
+.nav-link {
+  text-decoration: none;
+  color: #e0e0e0;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  cursor: pointer;
+  white-space: nowrap; /* ป้องกันข้อความตัดบรรทัด */
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.admin-link {
+  color: #dc3545;
+  border: 1px solid #dc3545;
+}
+
+.cart-badge {
+  background-color: #dc3545;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  margin-left: 5px;
+}
+
+/* --- Right Actions (Profile + Hamburger) --- */
+.navbar-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  z-index: 1002;
+}
+
+/* Profile Trigger */
+.profile-trigger {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.profile-avatar {
+  width: 45px; /* ขยายขนาดโปรไฟล์นิดหน่อยเพื่อให้กดง่ายบน iPad */
+  height: 45px;
+  border-radius: 50%;
+  background-color: #333;
+  border: 2px solid #ffc107;
+  color: #ffc107;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  transition: transform 0.2s;
+}
+
+.profile-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(255, 193, 7, 0.4);
+}
+
+/* Profile Dropdown Menu */
+.profile-dropdown-menu {
+  position: absolute;
+  top: 75px; /* ขยับลงมาให้พ้น Navbar */
+  right: 40px; /* ขยับให้ตรงกับ Padding ของ Navbar */
+  width: 240px;
+  background-color: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+  padding: 8px 0;
+  z-index: 1100;
+  overflow: hidden;
+}
+
+.dropdown-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid #333;
+  margin-bottom: 5px;
+}
+
+.dropdown-header strong { color: white; display: block; font-size: 1rem; }
+.dropdown-role { font-size: 0.85rem; color: #aaa; text-transform: uppercase; margin-top: 4px; }
+
+.dropdown-item {
+  display: block;
+  padding: 12px 20px;
+  color: #e0e0e0;
+  text-decoration: none;
+  transition: background 0.2s;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.dropdown-item:hover { background-color: #333; color: #ffc107; }
+.dropdown-item.logout { color: #dc3545; border-top: 1px solid #333; margin-top: 5px; }
+.dropdown-item.logout:hover { background-color: #3d0000; }
+
+/* Hamburger Button */
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* --- Responsive (Mobile / Small iPad) --- */
+@media (max-width: 900px) {
+  .navbar {
+    padding: 10px 20px; /* ลด Padding สำหรับมือถือ */
+    padding-top: calc(10px + env(safe-area-inset-top));
+    gap: 0; /* มือถือไม่ต้องมี gap เพราะเมนูซ่อนอยู่ */
+  }
+
+  .brand-text { font-size: 1.2rem; }
+
+  /* โชว์ปุ่ม Hamburger */
+  .hamburger-btn { display: block; }
+
+  /* ซ่อนเมนู Links ปกติ */
+  .navbar-center-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    flex-direction: column;
+    background-color: #0f0f0f;
+    border-bottom: 1px solid #333;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+    padding: 0;
+    gap: 0;
+    max-height: calc(100vh - 70px);
+    overflow-y: auto;
+  }
+
+  .navbar-center-menu.active {
+    display: flex;
+  }
+
+  .nav-link {
+    width: 100%;
+    padding: 15px 20px;
+    border-bottom: 1px solid #222;
+    border-radius: 0;
+    font-size: 1rem;
+  }
+  
+  .nav-link:hover { background-color: #1a1a1a; }
+
+  /* ปรับ Dropdown มือถือ */
+  .profile-dropdown-menu {
+    right: 10px;
+    width: 220px;
+    top: 65px;
+  }
+}
