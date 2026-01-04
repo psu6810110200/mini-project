@@ -1,15 +1,13 @@
 // src/pages/AdminDashboard.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import './AdminDashboard.css'; 
-import api from '../api/axios'; // เรียกใช้ axios instance ที่มี interceptor
-
+import api from '../api/axios'; 
 import { getWeapons, createWeapon, updateWeapon, deleteWeapon } from '../api/weaponApi';
 import { getAllOrders, updateOrderStatus } from '../api/orderApi';
-import type { Weapon, WeaponPayload, Order, UserProfile } from '../types'; // Import UserProfile
+import type { Weapon, WeaponPayload, Order, UserProfile } from '../types';
 import { OrderStatus } from '../types';
 import { toast } from 'react-toastify';
 
-// Interface สำหรับ Order ในหน้า Admin (เผื่อมี field user ที่ populate มาเพิ่ม)
 interface AdminOrder extends Order {
   user?: UserProfile;
 }
@@ -17,12 +15,24 @@ interface AdminOrder extends Order {
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState<'weapons' | 'orders' | 'users'>('weapons');
 
-  // --- State Weapons ---
+  // --- State Data ---
   const [weapons, setWeapons] = useState<Weapon[]>([]);
+  const [orders, setOrders] = useState<AdminOrder[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  
+  // --- Loading States ---
   const [loadingWeapons, setLoadingWeapons] = useState(false);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+
+  // --- Search & Filter States (✅ เพิ่มใหม่) ---
+  const [weaponSearch, setWeaponSearch] = useState('');
+  const [orderSearch, setOrderSearch] = useState('');
+  const [userFilter, setUserFilter] = useState<'all' | 'verified' | 'pending'>('all');
+
+  // --- Form State ---
   const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState<string | null>(null);
-  
   const [formData, setFormData] = useState<WeaponPayload>({
     name: '',
     description: '',
@@ -32,14 +42,6 @@ const AdminDashboard = () => {
     required_license_level: 1,
     image: '', 
   });
-
-  // --- State Orders ---
-  const [orders, setOrders] = useState<AdminOrder[]>([]);
-  const [loadingOrders, setLoadingOrders] = useState(false);
-
-  // --- State Users (เพิ่มใหม่) ---
-  const [users, setUsers] = useState<UserProfile[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
 
   // --- Fetch Functions ---
   const fetchWeapons = async () => {
@@ -58,7 +60,6 @@ const AdminDashboard = () => {
     try {
       setLoadingOrders(true);
       const data = await getAllOrders();
-      // แปลง data หรือใช้งานตาม structure ที่ backend ส่งมา
       setOrders(data);
     } catch (error) {
       toast.error('ไม่สามารถดึงข้อมูลคำสั่งซื้อได้');
@@ -67,7 +68,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // ฟังก์ชันดึงข้อมูลสมาชิก
   const fetchUsers = async () => {
     try {
       setLoadingUsers(true);
@@ -80,14 +80,42 @@ const AdminDashboard = () => {
     }
   };
 
-  // เรียกข้อมูลเมื่อเปลี่ยน Tab
+  // โหลดข้อมูลเมื่อเปลี่ยน Tab
   useEffect(() => {
     if (activeTab === 'weapons') fetchWeapons();
     else if (activeTab === 'orders') fetchOrders();
     else if (activeTab === 'users') fetchUsers();
   }, [activeTab]);
 
-  // --- Format Date Helper ---
+  // --- 1. Dashboard Summary Stats (✅ คำนวณยอดต่างๆ) ---
+  const stats = useMemo(() => {
+    return {
+      totalRevenue: orders
+        .filter(o => o.status === OrderStatus.APPROVED)
+        .reduce((sum, o) => sum + Number(o.total_price), 0),
+      pendingOrders: orders.filter(o => o.status === OrderStatus.PENDING).length,
+      pendingUsers: users.filter(u => !u.is_verified && u.role !== 'admin').length,
+      lowStockItems: weapons.filter(w => w.stock < 5).length
+    };
+  }, [orders, users, weapons]);
+
+  // --- Filtered Data Logic (✅ ระบบกรองข้อมูล) ---
+  const filteredWeapons = weapons.filter(w => 
+    w.name.toLowerCase().includes(weaponSearch.toLowerCase())
+  );
+
+  const filteredOrders = orders.filter(o => 
+    (o.user?.username || '').toLowerCase().includes(orderSearch.toLowerCase()) ||
+    o.id.toLowerCase().includes(orderSearch.toLowerCase())
+  );
+
+  const filteredUsers = users.filter(u => {
+    if (userFilter === 'verified') return u.is_verified;
+    if (userFilter === 'pending') return !u.is_verified;
+    return true; // all
+  });
+
+  // --- Handlers ---
   const formatDateOnly = (dateString: string | undefined) => {
     if (!dateString) return "-";
     return new Date(dateString).toLocaleDateString('th-TH', {
@@ -95,7 +123,6 @@ const AdminDashboard = () => {
     });
   };
 
-  // --- Handlers for Weapons ---
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -156,7 +183,6 @@ const AdminDashboard = () => {
     });
   };
 
-  // --- Handlers for Orders ---
   const handleStatusUpdate = async (id: string, newStatus: OrderStatus) => {
     if (!confirm(`ยืนยันเปลี่ยนสถานะเป็น ${newStatus}?`)) return;
     try {
@@ -168,13 +194,11 @@ const AdminDashboard = () => {
     }
   };
 
-  // --- Handlers for Users (Verify) ---
   const handleVerifyUser = async (userId: string) => {
     if (!confirm('ยืนยันอนุมัติผู้ใช้งานรายนี้?')) return;
     try {
       await api.patch(`/users/${userId}`, { is_verified: true });
       toast.success('อนุมัติผู้ใช้งานเรียบร้อย');
-      // อัปเดต state ในตารางทันที
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, is_verified: true } : u));
     } catch (error) {
       console.error(error);
@@ -182,28 +206,63 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleRejectUser = async (userId: string) => {
+    if (!confirm('ยืนยันที่จะปฏิเสธและลบผู้ใช้งานรายนี้? (การกระทำนี้ไม่สามารถย้อนกลับได้)')) return;
+    try {
+      await api.delete(`/users/${userId}`);
+      toast.success('ปฏิเสธผู้ใช้งานเรียบร้อย');
+      setUsers(prev => prev.filter(u => u.id !== userId));
+    } catch (error) {
+      console.error(error);
+      toast.error('เกิดข้อผิดพลาดในการปฏิเสธ');
+    }
+  };
+
   return (
     <div className="admin-container">
       <h1 className="admin-header">🛡️ Admin Dashboard</h1>
 
+      {/* ✅ 1. DASHBOARD SUMMARY CARDS */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+        
+        <div style={{ backgroundColor: '#1e1e1e', border: '1px solid #333', borderLeft: '5px solid #28a745', padding: '20px', borderRadius: '8px' }}>
+          <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#aaa' }}>💰 ยอดขายรวม (Approved)</h3>
+          <p style={{ margin: '10px 0 0', fontSize: '1.8rem', fontWeight: 'bold', color: '#fff' }}>
+            ${stats.totalRevenue.toLocaleString()}
+          </p>
+        </div>
+
+        <div style={{ backgroundColor: '#1e1e1e', border: '1px solid #333', borderLeft: '5px solid #ffc107', padding: '20px', borderRadius: '8px' }}>
+          <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#aaa' }}>📦 รอตรวจสอบ (Orders)</h3>
+          <p style={{ margin: '10px 0 0', fontSize: '1.8rem', fontWeight: 'bold', color: '#ffc107' }}>
+            {stats.pendingOrders} <span style={{ fontSize: '1rem' }}>รายการ</span>
+          </p>
+        </div>
+
+        <div style={{ backgroundColor: '#1e1e1e', border: '1px solid #333', borderLeft: '5px solid #17a2b8', padding: '20px', borderRadius: '8px' }}>
+          <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#aaa' }}>👤 รอยืนยันตัวตน (Users)</h3>
+          <p style={{ margin: '10px 0 0', fontSize: '1.8rem', fontWeight: 'bold', color: '#17a2b8' }}>
+            {stats.pendingUsers} <span style={{ fontSize: '1rem' }}>คน</span>
+          </p>
+        </div>
+
+        <div style={{ backgroundColor: '#1e1e1e', border: '1px solid #333', borderLeft: '5px solid #dc3545', padding: '20px', borderRadius: '8px' }}>
+          <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#aaa' }}>⚠️ สินค้าใกล้หมด (&lt;5)</h3>
+          <p style={{ margin: '10px 0 0', fontSize: '1.8rem', fontWeight: 'bold', color: '#dc3545' }}>
+            {stats.lowStockItems} <span style={{ fontSize: '1rem' }}>รายการ</span>
+          </p>
+        </div>
+      </div>
+
       {/* Tab Menu */}
       <div className="tab-menu">
-        <button 
-          className={`tab-btn ${activeTab === 'weapons' ? 'active' : ''}`}
-          onClick={() => setActiveTab('weapons')}
-        >
+        <button className={`tab-btn ${activeTab === 'weapons' ? 'active' : ''}`} onClick={() => setActiveTab('weapons')}>
           จัดการคลังอาวุธ 🔫
         </button>
-        <button 
-          className={`tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
-          onClick={() => setActiveTab('orders')}
-        >
+        <button className={`tab-btn ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => setActiveTab('orders')}>
           ตรวจสอบคำสั่งซื้อ 📋
         </button>
-        <button 
-          className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
-          onClick={() => setActiveTab('users')}
-        >
+        <button className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`} onClick={() => setActiveTab('users')}>
           สมาชิก / ยืนยันตัวตน 👤
         </button>
       </div>
@@ -214,6 +273,7 @@ const AdminDashboard = () => {
           <div className="dark-card">
             <h3>{isEditing ? '🔧 แก้ไขอาวุธ' : '➕ เพิ่มอาวุธใหม่'}</h3>
             <form onSubmit={handleSubmit} className="form-grid">
+              {/* Form Inputs เหมือนเดิม */}
               <div className="form-group full-width">
                 <label className="form-label">ชื่ออาวุธ:</label>
                 <input type="text" name="name" value={formData.name} onChange={handleChange} required className="form-input" placeholder="Ex. M4A1 Carbine" />
@@ -258,7 +318,19 @@ const AdminDashboard = () => {
           </div>
 
           <div className="dark-card">
-            <h3>📦 รายการอาวุธทั้งหมด ({weapons.length})</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+              <h3>📦 รายการอาวุธทั้งหมด ({filteredWeapons.length})</h3>
+              {/* ✅ Search Weapons */}
+              <input 
+                type="text" 
+                placeholder="🔍 ค้นหาอาวุธ..." 
+                value={weaponSearch}
+                onChange={(e) => setWeaponSearch(e.target.value)}
+                className="form-input"
+                style={{ width: '250px', padding: '8px' }}
+              />
+            </div>
+
             <div className="table-container">
               {loadingWeapons ? <p style={{color: '#aaa'}}>Loading...</p> : (
                 <table className="cyber-table">
@@ -266,6 +338,7 @@ const AdminDashboard = () => {
                     <tr>
                       <th style={{width: '60px'}}>รูป</th>
                       <th>ชื่อ</th>
+                      <th>หมวดหมู่</th> {/* ✅ เพิ่มคอลัมน์ Category */}
                       <th>ราคา</th>
                       <th>Stock</th>
                       <th>License</th>
@@ -273,14 +346,18 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {weapons.map((w) => (
+                    {filteredWeapons.map((w) => (
                       <tr key={w.id}>
                         <td style={{ textAlign: 'center' }}>
                           {w.image ? <img src={w.image} alt={w.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} /> : '-'}
                         </td>
                         <td style={{ fontWeight: 'bold' }}>{w.name}</td>
+                        {/* ✅ แสดง Category */}
+                        <td><span style={{ textTransform: 'capitalize', color: '#ccc' }}>{w.category}</span></td>
                         <td style={{ color: '#28a745' }}>${Number(w.price).toLocaleString()}</td>
-                        <td style={{ color: w.stock < 5 ? '#dc3545' : 'inherit' }}>{w.stock}</td>
+                        <td style={{ color: w.stock < 5 ? '#dc3545' : 'inherit', fontWeight: w.stock < 5 ? 'bold' : 'normal' }}>
+                          {w.stock}
+                        </td>
                         <td style={{textAlign: 'center'}}>{w.required_license_level}</td>
                         <td style={{textAlign: 'center'}}>
                           <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
@@ -301,7 +378,20 @@ const AdminDashboard = () => {
       {/* ==================== ORDERS TAB ==================== */}
       {activeTab === 'orders' && (
         <div className="dark-card">
-          <h3>🛒 รายการคำสั่งซื้อ ({orders.length})</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+            <h3>🛒 รายการคำสั่งซื้อ ({filteredOrders.length})</h3>
+            
+            {/* ✅ 3. Search Orders by Username */}
+            <input 
+              type="text" 
+              placeholder="🔍 ค้นหา Username / Order ID..." 
+              value={orderSearch}
+              onChange={(e) => setOrderSearch(e.target.value)}
+              className="form-input"
+              style={{ width: '300px', padding: '8px' }}
+            />
+          </div>
+
           <div className="table-container">
             {loadingOrders ? <p style={{color: '#aaa'}}>Loading orders...</p> : (
               <table className="cyber-table">
@@ -319,11 +409,11 @@ const AdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((order) => (
+                  {filteredOrders.map((order) => (
                     <tr key={order.id}>
                       <td><small style={{color:'#777'}}>{order.id.substring(0, 8)}...</small></td>
                       <td>{formatDateOnly(order.created_at)}</td>
-                      <td>{order.user?.username || 'Unknown'}</td>
+                      <td style={{ fontWeight: 'bold', color: '#fff' }}>{order.user?.username || 'Unknown'}</td>
                       <td style={{ color: order.user?.license_number ? '#00d2ff' : '#555', textAlign: 'center' }}>
                         {order.user?.license_number || '-'}
                       </td>
@@ -367,10 +457,25 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* ==================== USERS / VERIFICATION TAB (New) ==================== */}
+      {/* ==================== USERS TAB ==================== */}
       {activeTab === 'users' && (
         <div className="dark-card">
-          <h3>👤 จัดการสมาชิกและยืนยันตัวตน ({users.length})</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+            <h3>👤 จัดการสมาชิก ({filteredUsers.length})</h3>
+
+            {/* ✅ 3. Filter User Status */}
+            <select 
+              value={userFilter}
+              onChange={(e) => setUserFilter(e.target.value as 'all'|'verified'|'pending')}
+              className="form-select"
+              style={{ width: '200px', padding: '8px' }}
+            >
+              <option value="all">ทั้งหมด (All Users)</option>
+              <option value="pending">⏳ รออนุมัติ (Pending)</option>
+              <option value="verified">✓ ยืนยันแล้ว (Verified)</option>
+            </select>
+          </div>
+
           <div className="table-container">
             {loadingUsers ? <p style={{color: '#aaa'}}>Loading users...</p> : (
               <table className="cyber-table">
@@ -385,7 +490,7 @@ const AdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user) => (
+                  {filteredUsers.map((user) => (
                     <tr key={user.id}>
                       <td style={{ fontWeight: 'bold', color: '#fff' }}>{user.username}</td>
                       <td>{user.role}</td>
@@ -413,16 +518,22 @@ const AdminDashboard = () => {
                       </td>
                       <td style={{ textAlign: 'center' }}>
                         {!user.is_verified && user.role !== 'admin' && (
-                          <button 
-                            onClick={() => handleVerifyUser(user.id)}
-                            className="btn-action"
-                            style={{ 
-                              backgroundColor: '#28a745', color: 'white', 
-                              padding: '5px 12px', fontSize: '0.8rem', width: 'auto' 
-                            }}
-                          >
-                            อนุมัติ (Verify)
-                          </button>
+                          <div style={{ display: 'flex', justifyContent: 'center', gap: '5px' }}>
+                            <button 
+                              onClick={() => handleVerifyUser(user.id)}
+                              className="btn-action"
+                              style={{ backgroundColor: '#28a745', color: 'white', padding: '5px 12px', fontSize: '0.8rem', width: 'auto' }}
+                            >
+                              อนุมัติ
+                            </button>
+                            <button 
+                              onClick={() => handleRejectUser(user.id)}
+                              className="btn-action"
+                              style={{ backgroundColor: '#dc3545', color: 'white', padding: '5px 12px', fontSize: '0.8rem', width: 'auto' }}
+                            >
+                              ปฏิเสธ
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
