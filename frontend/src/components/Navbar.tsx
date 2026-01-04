@@ -2,12 +2,12 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { CartContext } from '../context/CartContext'; // ✅ อย่าลืม Import CartContext
+import { CartContext } from '../context/CartContext';
 import logo from '../assets/logowws.png'; 
 
 const Navbar = () => {
   const auth = useContext(AuthContext);
-  const cart = useContext(CartContext); // ✅ ดึงข้อมูลตะกร้ามาใช้
+  const cart = useContext(CartContext);
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -15,7 +15,6 @@ const Navbar = () => {
 
   const user = auth?.user;
 
-  // ฟังก์ชัน Logout
   const handleLogout = () => {
     if (auth?.logout) {
       auth.logout();
@@ -23,7 +22,6 @@ const Navbar = () => {
     }
   };
 
-  // ปิด Dropdown เมื่อคลิกข้างนอก
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -44,7 +42,7 @@ const Navbar = () => {
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: '10px 30px',
-      backgroundColor: '#000000', // ปรับเป็นดำสนิทตามสไตล์ร้านปืน
+      backgroundColor: '#000000',
       borderBottom: '1px solid #333',
       color: 'white',
       position: 'sticky',
@@ -62,11 +60,11 @@ const Navbar = () => {
         />
         <span style={{ 
           color: '#ffc107', 
-          fontSize: '2.3rem', 
-          fontWeight: '1200', 
+          fontSize: '1.6rem', 
+          fontWeight: '900', 
           letterSpacing: '1px',
           textTransform: 'uppercase',
-          fontFamily: 'Impact, sans-serif' // เปลี่ยนฟอนต์ให้ดูดุดัน (ถ้ามี)
+          fontFamily: 'Impact, sans-serif'
         }}>
           WAR WEAPON SHOP
         </span>
@@ -75,18 +73,17 @@ const Navbar = () => {
       {/* --- RIGHT: MENU & PROFILE --- */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
 
-        {/* 1. ปุ่ม Home (แต่งใหม่) */}
+        {/* Home */}
         <Link to="/" style={navLinkStyle}>
           <span style={{ fontSize: '1.2rem' }}>🏠</span>
           <span>หน้าหลัก</span>
         </Link>
         
-        {/* 2. ปุ่ม Cart (แต่งใหม่ + Badge) */}
+        {/* Cart */}
         <Link to="/cart" style={{ ...navLinkStyle, position: 'relative' }}>
           <span style={{ fontSize: '1.2rem' }}>🛒</span>
           <span>ตะกร้า</span>
           
-          {/* Badge แสดงจำนวนสินค้า */}
           {cart && cart.totalItems > 0 && (
             <span style={{ 
               position: 'absolute',
@@ -108,7 +105,7 @@ const Navbar = () => {
           )}
         </Link>
         
-        {/* 3. ปุ่ม Admin Dashboard (ตามโค้ดที่คุณขอ) */}
+        {/* Admin Dashboard */}
         {user?.role === 'admin' && (
            <Link to="/admin" style={{ 
              color: '#dc3545', 
@@ -126,10 +123,9 @@ const Navbar = () => {
            </Link>
         )}
 
-        {/* เส้นคั่นแนวตั้ง */}
         <div style={{ borderLeft: '1px solid #444', height: '35px', margin: '0 5px' }}></div>
 
-        {/* 4. USER PROFILE (Dropdown) */}
+        {/* USER PROFILE (Dropdown) */}
         <div style={{ position: 'relative' }} ref={dropdownRef}>
           <div 
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -180,13 +176,11 @@ const Navbar = () => {
               gap: '5px',
               zIndex: 1100
             }}>
-              {/* Header: User Info */}
+              {/* Header */}
               <div style={{ padding: '5px 10px 15px 10px', borderBottom: '1px solid #333', marginBottom: '5px' }}>
                 <p style={{ margin: 0, color: '#fff', fontWeight: 'bold', fontSize: '1.1rem' }}>{user?.username}</p>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '5px' }}>
                   <span style={{ color: '#aaa', fontSize: '0.85rem' }}>Role: {user?.role}</span>
-                  
-                  {/* แสดง Verified/Pending ใน Dropdown */}
                   {user?.is_verified ? (
                     <span style={{ color: '#28a745', fontSize: '0.75rem', border: '1px solid #28a745', padding: '1px 5px', borderRadius: '4px' }}>✓ Verified</span>
                   ) : (
@@ -195,11 +189,11 @@ const Navbar = () => {
                 </div>
               </div>
 
-              {/* Menus */}
-              <Link to="/settings" style={menuItemStyle}>⚙️ ตั้งค่าบัญชี (Settings)</Link>
+              {/* ✅ Link ไป Profile Page */}
+              <Link to="/profile" style={menuItemStyle}>👤 ข้อมูลส่วนตัว (My Profile)</Link>
+              
               <Link to="/orders" style={menuItemStyle}>📜 ประวัติการสั่งซื้อ (Orders)</Link>
 
-              {/* Logout */}
               <div 
                 onClick={handleLogout}
                 style={{
@@ -222,9 +216,7 @@ const Navbar = () => {
   );
 };
 
-// --- CSS STYLES (Inline) ---
-
-// สไตล์สำหรับปุ่ม Home และ Cart
+// Styles
 const navLinkStyle: React.CSSProperties = {
   textDecoration: 'none', 
   color: '#e0e0e0', 
@@ -237,7 +229,6 @@ const navLinkStyle: React.CSSProperties = {
   transition: 'all 0.2s ease-in-out',
 };
 
-// สไตล์สำหรับรายการใน Dropdown
 const menuItemStyle: React.CSSProperties = {
   display: 'block',
   padding: '10px 12px',

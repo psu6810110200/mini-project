@@ -15,16 +15,14 @@ import { CartProvider } from './context/CartContext';
 import CartPage from './pages/CartPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
+import ProfilePage from './pages/ProfilePage'; // ✅ Import เข้ามา
 
-// ----------------------------------------------------------------------
-// ✅ 1. แก้ไข ProtectedRoute ให้เช็ค loading ก่อน
-// ----------------------------------------------------------------------
+// Route Guard: ต้อง Login ก่อน
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const auth = useContext(AuthContext);
 
-  // ถ้า Context ยังไม่พร้อม หรือกำลังโหลดข้อมูลจาก Storage อยู่ ให้ return null (หรือ Loading Spinner) ไปก่อน
   if (!auth || auth.loading) {
-    return <div>Loading...</div>; // หรือใส่ Component Loading สวยๆ ตรงนี้
+    return <div style={{color:'white', textAlign:'center', marginTop:'20px'}}>Loading System...</div>;
   }
 
   if (!auth.isAuthenticated) {
@@ -33,15 +31,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return children as React.ReactElement;
 };
 
-// ----------------------------------------------------------------------
-// ✅ 2. แก้ไข AdminRoute ให้เช็ค loading ก่อนเช่นกัน
-// ----------------------------------------------------------------------
+// Route Guard: ต้องเป็น Admin เท่านั้น
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const auth = useContext(AuthContext);
   
-  // รอโหลดเสร็จก่อนค่อยเช็คเงื่อนไข
   if (!auth || auth.loading) {
-    return <div>Loading...</div>; 
+    return <div style={{color:'white', textAlign:'center', marginTop:'20px'}}>Checking Clearance...</div>;
   }
   
   if (!auth.isAuthenticated) {
@@ -58,6 +53,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   const location = useLocation();
 
+  // ซ่อน Navbar ในหน้า Login/Register
   const hideNavbarRoutes = ['/login', '/register']; 
   const shouldShowNavbar = !hideNavbarRoutes.includes(location.pathname);
 
@@ -103,6 +99,13 @@ function App() {
           <Route path="/orders" element={
             <ProtectedRoute>
               <OrderHistoryPage />
+            </ProtectedRoute>
+          } />
+
+          {/* ✅ เพิ่ม Route Profile */}
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           } />
           
