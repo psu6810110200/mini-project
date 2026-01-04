@@ -16,18 +16,35 @@ import CartPage from './pages/CartPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
 
+// ----------------------------------------------------------------------
+// ✅ 1. แก้ไข ProtectedRoute ให้เช็ค loading ก่อน
+// ----------------------------------------------------------------------
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const auth = useContext(AuthContext);
-  if (!auth?.isAuthenticated) {
+
+  // ถ้า Context ยังไม่พร้อม หรือกำลังโหลดข้อมูลจาก Storage อยู่ ให้ return null (หรือ Loading Spinner) ไปก่อน
+  if (!auth || auth.loading) {
+    return <div>Loading...</div>; // หรือใส่ Component Loading สวยๆ ตรงนี้
+  }
+
+  if (!auth.isAuthenticated) {
     return <Navigate to="/login" />;
   }
   return children as React.ReactElement;
 };
 
+// ----------------------------------------------------------------------
+// ✅ 2. แก้ไข AdminRoute ให้เช็ค loading ก่อนเช่นกัน
+// ----------------------------------------------------------------------
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const auth = useContext(AuthContext);
   
-  if (!auth?.isAuthenticated) {
+  // รอโหลดเสร็จก่อนค่อยเช็คเงื่อนไข
+  if (!auth || auth.loading) {
+    return <div>Loading...</div>; 
+  }
+  
+  if (!auth.isAuthenticated) {
     return <Navigate to="/login" />;
   }
   
@@ -77,7 +94,6 @@ function App() {
             </ProtectedRoute>
           } />
           
-          {/* ✅ แก้ไขตรงนี้: เปลี่ยนจาก /success เป็น /order-success ให้ตรงกับ CartPage */}
           <Route path="/order-success" element={
             <ProtectedRoute>
                <OrderSuccessPage />
