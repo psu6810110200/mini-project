@@ -2,30 +2,23 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import './AdminDashboard.css'; 
 import api from '../api/axios'; 
-import { getWeapons, createWeapon, updateWeapon, deleteWeapon } from '../api/weaponApi';
-import { getAllOrders, updateOrderStatus } from '../api/orderApi';
-import type { Weapon, WeaponPayload, Order, UserProfile } from '../types';
+import { createWeapon, updateWeapon, deleteWeapon } from '../api/weaponApi'; // ลบ getWeapons ออก
+import { updateOrderStatus } from '../api/orderApi'; // ลบ getAllOrders ออก
+import { useAdmin } from '../context/AdminContext'; // ✅ เรียกใช้ Context
+import type { WeaponPayload } from '../types';
 import { OrderStatus } from '../types';
 import { toast } from 'react-toastify';
 
-interface AdminOrder extends Order {
-  user?: UserProfile;
-}
-
 const AdminDashboard = () => {
+  // ✅ 1. ดึงข้อมูลและฟังก์ชันจาก Context
+  const { 
+    weapons, orders, users, loading, 
+    fetchWeapons, fetchOrders, fetchUsers 
+  } = useAdmin();
+
   const [activeTab, setActiveTab] = useState<'weapons' | 'orders' | 'users'>('weapons');
 
-  // --- State Data ---
-  const [weapons, setWeapons] = useState<Weapon[]>([]);
-  const [orders, setOrders] = useState<AdminOrder[]>([]);
-  const [users, setUsers] = useState<UserProfile[]>([]);
-  
-  // --- Loading States ---
-  const [loadingWeapons, setLoadingWeapons] = useState(false);
-  const [loadingOrders, setLoadingOrders] = useState(false);
-  const [loadingUsers, setLoadingUsers] = useState(false);
-
-  // --- Search & Filter States (✅ เพิ่มใหม่) ---
+  // --- Search & Filter States ---
   const [weaponSearch, setWeaponSearch] = useState('');
   const [orderSearch, setOrderSearch] = useState('');
   const [userFilter, setUserFilter] = useState<'all' | 'verified' | 'pending'>('all');
@@ -43,51 +36,14 @@ const AdminDashboard = () => {
     image: '', 
   });
 
-  // --- Fetch Functions ---
-  const fetchWeapons = async () => {
-    try {
-      setLoadingWeapons(true);
-      const response = await getWeapons({ page: 1, limit: 100 }); 
-      setWeapons(response.data);
-    } catch (error) {
-      toast.error('ไม่สามารถดึงข้อมูลอาวุธได้');
-    } finally {
-      setLoadingWeapons(false);
-    }
-  };
-
-  const fetchOrders = async () => {
-    try {
-      setLoadingOrders(true);
-      const data = await getAllOrders();
-      setOrders(data);
-    } catch (error) {
-      toast.error('ไม่สามารถดึงข้อมูลคำสั่งซื้อได้');
-    } finally {
-      setLoadingOrders(false);
-    }
-  };
-
-  const fetchUsers = async () => {
-    try {
-      setLoadingUsers(true);
-      const response = await api.get('/users');
-      setUsers(response.data);
-    } catch (error) {
-      toast.error('ไม่สามารถดึงข้อมูลสมาชิกได้');
-    } finally {
-      setLoadingUsers(false);
-    }
-  };
-
-  // โหลดข้อมูลเมื่อเปลี่ยน Tab
+  // ✅ 2. useEffect ฉลาดขึ้น: โหลดเฉพาะตอนที่ "ยังไม่มีข้อมูล" เท่านั้น
   useEffect(() => {
-    if (activeTab === 'weapons') fetchWeapons();
-    else if (activeTab === 'orders') fetchOrders();
-    else if (activeTab === 'users') fetchUsers();
+    if (activeTab === 'weapons' && weapons.length === 0) fetchWeapons();
+    else if (activeTab === 'orders' && orders.length === 0) fetchOrders();
+    else if (activeTab === 'users' && users.length === 0) fetchUsers();
   }, [activeTab]);
 
-  // --- 1. Dashboard Summary Stats (✅ คำนวณยอดต่างๆ) ---
+  // --- 3. Dashboard Summary Stats ---
   const stats = useMemo(() => {
     return {
       totalRevenue: orders
@@ -99,7 +55,7 @@ const AdminDashboard = () => {
     };
   }, [orders, users, weapons]);
 
-  // --- Filtered Data Logic (✅ ระบบกรองข้อมูล) ---
+  // --- Filtered Data Logic ---
   const filteredWeapons = weapons.filter(w => 
     w.name.toLowerCase().includes(weaponSearch.toLowerCase())
   );
@@ -142,7 +98,7 @@ const AdminDashboard = () => {
         toast.success('เพิ่มอาวุธสำเร็จ');
       }
       resetForm();
-      fetchWeapons();
+      fetchWeapons(); // ✅ เรียก fetch ผ่าน Context เพื่ออัปเดตข้อมูลกลาง
     } catch (error) {
       toast.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
     }
@@ -153,13 +109,13 @@ const AdminDashboard = () => {
     try {
       await deleteWeapon(id);
       toast.success('ลบข้อมูลสำเร็จ');
-      fetchWeapons();
+      fetchWeapons(); // ✅ อัปเดตข้อมูลกลาง
     } catch (error) {
       toast.error('ลบข้อมูลไม่สำเร็จ');
     }
   };
 
-  const startEdit = (weapon: Weapon) => {
+  const startEdit = (weapon: any) => {
     setIsEditing(true);
     setCurrentId(weapon.id);
     setFormData({
@@ -188,7 +144,7 @@ const AdminDashboard = () => {
     try {
       await updateOrderStatus(id, newStatus);
       toast.success(`อัปเดตสถานะเป็น ${newStatus} แล้ว`);
-      fetchOrders();
+      fetchOrders(); // ✅ อัปเดตข้อมูลกลาง
     } catch (error) {
       toast.error('อัปเดตสถานะล้มเหลว');
     }
@@ -199,7 +155,7 @@ const AdminDashboard = () => {
     try {
       await api.patch(`/users/${userId}`, { is_verified: true });
       toast.success('อนุมัติผู้ใช้งานเรียบร้อย');
-      setUsers(prev => prev.map(u => u.id === userId ? { ...u, is_verified: true } : u));
+      fetchUsers(); // ✅ อัปเดตข้อมูลกลาง
     } catch (error) {
       console.error(error);
       toast.error('เกิดข้อผิดพลาดในการอนุมัติ');
@@ -207,11 +163,11 @@ const AdminDashboard = () => {
   };
 
   const handleRejectUser = async (userId: string) => {
-    if (!confirm('ยืนยันที่จะปฏิเสธและลบผู้ใช้งานรายนี้? (การกระทำนี้ไม่สามารถย้อนกลับได้)')) return;
+    if (!confirm('ยืนยันที่จะปฏิเสธและลบผู้ใช้งานรายนี้?')) return;
     try {
       await api.delete(`/users/${userId}`);
       toast.success('ปฏิเสธผู้ใช้งานเรียบร้อย');
-      setUsers(prev => prev.filter(u => u.id !== userId));
+      fetchUsers(); // ✅ อัปเดตข้อมูลกลาง
     } catch (error) {
       console.error(error);
       toast.error('เกิดข้อผิดพลาดในการปฏิเสธ');
@@ -220,32 +176,40 @@ const AdminDashboard = () => {
 
   return (
     <div className="admin-container">
-      <h1 className="admin-header">🛡️ Admin Dashboard</h1>
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+        <h1 className="admin-header">🛡️ Admin Dashboard</h1>
+        {/* ปุ่ม Refresh ด้วยมือ เผื่ออยากดึงข้อมูลใหม่จริงๆ */}
+        <button 
+           onClick={() => { fetchWeapons(); fetchOrders(); fetchUsers(); toast.info('Refreshed Data'); }}
+           style={{ background: '#333', color: 'white', border: '1px solid #555', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer' }}
+        >
+          🔄 Refresh All
+        </button>
+      </div>
 
-      {/* ✅ 1. DASHBOARD SUMMARY CARDS */}
+      {/* DASHBOARD SUMMARY CARDS */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-        
+        {/* ... (Code ส่วน Cards เหมือนเดิม ไม่ต้องแก้) ... */}
+        {/* ตัวอย่าง Card 1 อัน */}
         <div style={{ backgroundColor: '#1e1e1e', border: '1px solid #333', borderLeft: '5px solid #28a745', padding: '20px', borderRadius: '8px' }}>
           <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#aaa' }}>💰 ยอดขายรวม (Approved)</h3>
           <p style={{ margin: '10px 0 0', fontSize: '1.8rem', fontWeight: 'bold', color: '#fff' }}>
             ${stats.totalRevenue.toLocaleString()}
           </p>
         </div>
-
-        <div style={{ backgroundColor: '#1e1e1e', border: '1px solid #333', borderLeft: '5px solid #ffc107', padding: '20px', borderRadius: '8px' }}>
+        {/* ใส่ Card อื่นๆ ที่เหลือตามโค้ดเดิม... */}
+         <div style={{ backgroundColor: '#1e1e1e', border: '1px solid #333', borderLeft: '5px solid #ffc107', padding: '20px', borderRadius: '8px' }}>
           <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#aaa' }}>📦 รอตรวจสอบ (Orders)</h3>
           <p style={{ margin: '10px 0 0', fontSize: '1.8rem', fontWeight: 'bold', color: '#ffc107' }}>
             {stats.pendingOrders} <span style={{ fontSize: '1rem' }}>รายการ</span>
           </p>
         </div>
-
         <div style={{ backgroundColor: '#1e1e1e', border: '1px solid #333', borderLeft: '5px solid #17a2b8', padding: '20px', borderRadius: '8px' }}>
           <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#aaa' }}>👤 รอยืนยันตัวตน (Users)</h3>
           <p style={{ margin: '10px 0 0', fontSize: '1.8rem', fontWeight: 'bold', color: '#17a2b8' }}>
             {stats.pendingUsers} <span style={{ fontSize: '1rem' }}>คน</span>
           </p>
         </div>
-
         <div style={{ backgroundColor: '#1e1e1e', border: '1px solid #333', borderLeft: '5px solid #dc3545', padding: '20px', borderRadius: '8px' }}>
           <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#aaa' }}>⚠️ สินค้าใกล้หมด (&lt;5)</h3>
           <p style={{ margin: '10px 0 0', fontSize: '1.8rem', fontWeight: 'bold', color: '#dc3545' }}>
@@ -273,39 +237,15 @@ const AdminDashboard = () => {
           <div className="dark-card">
             <h3>{isEditing ? '🔧 แก้ไขอาวุธ' : '➕ เพิ่มอาวุธใหม่'}</h3>
             <form onSubmit={handleSubmit} className="form-grid">
-              {/* Form Inputs เหมือนเดิม */}
-              <div className="form-group full-width">
-                <label className="form-label">ชื่ออาวุธ:</label>
-                <input type="text" name="name" value={formData.name} onChange={handleChange} required className="form-input" placeholder="Ex. M4A1 Carbine" />
-              </div>
-              <div className="form-group full-width">
-                <label className="form-label">URL รูปภาพ:</label>
-                <input type="text" name="image" value={formData.image || ''} onChange={handleChange} placeholder="https://..." className="form-input" />
-              </div>
-              <div className="form-group full-width">
-                <label className="form-label">รายละเอียด:</label>
-                <textarea name="description" value={formData.description} onChange={handleChange} required rows={3} className="form-textarea" placeholder="รายละเอียด..." />
-              </div>
-              <div className="form-group">
-                <label className="form-label">ราคา ($):</label>
-                <input type="number" name="price" value={formData.price} onChange={handleChange} required className="form-input" />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Stock:</label>
-                <input type="number" name="stock" value={formData.stock} onChange={handleChange} required className="form-input" />
-              </div>
-              <div className="form-group">
-                <label className="form-label">หมวดหมู่:</label>
-                <select name="category" value={formData.category} onChange={handleChange} className="form-select">
-                  <option value="light">Light</option>
-                  <option value="heavy">Heavy</option>
-                  <option value="explosive">Explosive</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">License Level:</label>
-                <input type="number" name="required_license_level" value={formData.required_license_level} onChange={handleChange} required className="form-input" />
-              </div>
+               {/* ... (Inputs ในฟอร์มเหมือนเดิมทุกอย่าง ก๊อปของเดิมมาใส่ได้เลย) ... */}
+               <div className="form-group full-width"><label className="form-label">ชื่ออาวุธ:</label><input type="text" name="name" value={formData.name} onChange={handleChange} required className="form-input" placeholder="Ex. M4A1 Carbine" /></div>
+               <div className="form-group full-width"><label className="form-label">URL รูปภาพ:</label><input type="text" name="image" value={formData.image || ''} onChange={handleChange} placeholder="https://..." className="form-input" /></div>
+               <div className="form-group full-width"><label className="form-label">รายละเอียด:</label><textarea name="description" value={formData.description} onChange={handleChange} required rows={3} className="form-textarea" placeholder="รายละเอียด..." /></div>
+               <div className="form-group"><label className="form-label">ราคา ($):</label><input type="number" name="price" value={formData.price} onChange={handleChange} required className="form-input" /></div>
+               <div className="form-group"><label className="form-label">Stock:</label><input type="number" name="stock" value={formData.stock} onChange={handleChange} required className="form-input" /></div>
+               <div className="form-group"><label className="form-label">หมวดหมู่:</label><select name="category" value={formData.category} onChange={handleChange} className="form-select"><option value="light">Light</option><option value="heavy">Heavy</option><option value="explosive">Explosive</option></select></div>
+               <div className="form-group"><label className="form-label">License Level:</label><input type="number" name="required_license_level" value={formData.required_license_level} onChange={handleChange} required className="form-input" /></div>
+              
               <div className="form-group full-width" style={{ marginTop: '10px' }}>
                 <button type="submit" className="btn-submit" style={{ marginRight: '10px' }}>
                   {isEditing ? 'บันทึกการแก้ไข' : 'ยืนยันเพิ่มอาวุธ'}
@@ -320,44 +260,25 @@ const AdminDashboard = () => {
           <div className="dark-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
               <h3>📦 รายการอาวุธทั้งหมด ({filteredWeapons.length})</h3>
-              {/* ✅ Search Weapons */}
-              <input 
-                type="text" 
-                placeholder="🔍 ค้นหาอาวุธ..." 
-                value={weaponSearch}
-                onChange={(e) => setWeaponSearch(e.target.value)}
-                className="form-input"
-                style={{ width: '250px', padding: '8px' }}
-              />
+              <input type="text" placeholder="🔍 ค้นหาอาวุธ..." value={weaponSearch} onChange={(e) => setWeaponSearch(e.target.value)} className="form-input" style={{ width: '250px', padding: '8px' }} />
             </div>
 
             <div className="table-container">
-              {loadingWeapons ? <p style={{color: '#aaa'}}>Loading...</p> : (
+              {loading.weapons ? <p style={{color: '#aaa'}}>Loading...</p> : (
                 <table className="cyber-table">
                   <thead>
                     <tr>
-                      <th style={{width: '60px'}}>รูป</th>
-                      <th>ชื่อ</th>
-                      <th>หมวดหมู่</th> {/* ✅ เพิ่มคอลัมน์ Category */}
-                      <th>ราคา</th>
-                      <th>Stock</th>
-                      <th>License</th>
-                      <th style={{ textAlign: 'center' }}>จัดการ</th>
+                      <th style={{width: '60px'}}>รูป</th><th>ชื่อ</th><th>หมวดหมู่</th><th>ราคา</th><th>Stock</th><th>License</th><th style={{ textAlign: 'center' }}>จัดการ</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredWeapons.map((w) => (
                       <tr key={w.id}>
-                        <td style={{ textAlign: 'center' }}>
-                          {w.image ? <img src={w.image} alt={w.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} /> : '-'}
-                        </td>
+                        <td style={{ textAlign: 'center' }}>{w.image ? <img src={w.image} alt={w.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} /> : '-'}</td>
                         <td style={{ fontWeight: 'bold' }}>{w.name}</td>
-                        {/* ✅ แสดง Category */}
                         <td><span style={{ textTransform: 'capitalize', color: '#ccc' }}>{w.category}</span></td>
                         <td style={{ color: '#28a745' }}>${Number(w.price).toLocaleString()}</td>
-                        <td style={{ color: w.stock < 5 ? '#dc3545' : 'inherit', fontWeight: w.stock < 5 ? 'bold' : 'normal' }}>
-                          {w.stock}
-                        </td>
+                        <td style={{ color: w.stock < 5 ? '#dc3545' : 'inherit', fontWeight: w.stock < 5 ? 'bold' : 'normal' }}>{w.stock}</td>
                         <td style={{textAlign: 'center'}}>{w.required_license_level}</td>
                         <td style={{textAlign: 'center'}}>
                           <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
@@ -380,65 +301,34 @@ const AdminDashboard = () => {
         <div className="dark-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
             <h3>🛒 รายการคำสั่งซื้อ ({filteredOrders.length})</h3>
-            
-            {/* ✅ 3. Search Orders by Username */}
-            <input 
-              type="text" 
-              placeholder="🔍 ค้นหา Username / Order ID..." 
-              value={orderSearch}
-              onChange={(e) => setOrderSearch(e.target.value)}
-              className="form-input"
-              style={{ width: '300px', padding: '8px' }}
-            />
+            <input type="text" placeholder="🔍 ค้นหา Username / Order ID..." value={orderSearch} onChange={(e) => setOrderSearch(e.target.value)} className="form-input" style={{ width: '300px', padding: '8px' }} />
           </div>
 
           <div className="table-container">
-            {loadingOrders ? <p style={{color: '#aaa'}}>Loading orders...</p> : (
+            {loading.orders ? <p style={{color: '#aaa'}}>Loading orders...</p> : (
               <table className="cyber-table">
-                <thead>
-                  <tr>
-                    <th>Order ID</th>
-                    <th>วันที่</th>
-                    <th>ลูกค้า</th>
-                    <th>License</th>
-                    <th>รับสินค้า</th>
-                    <th>รายการ</th>
-                    <th>ยอดรวม</th>
-                    <th>สถานะ</th>
-                    <th style={{ textAlign: 'center' }}>Action</th>
-                  </tr>
-                </thead>
+                {/* ... (Table Headers เหมือนเดิม) ... */}
+                <thead><tr><th>Order ID</th><th>วันที่</th><th>ลูกค้า</th><th>License</th><th>รับสินค้า</th><th>รายการ</th><th>ยอดรวม</th><th>สถานะ</th><th style={{ textAlign: 'center' }}>Action</th></tr></thead>
                 <tbody>
                   {filteredOrders.map((order) => (
                     <tr key={order.id}>
+                      {/* ... (Table Row Content เหมือนเดิม) ... */}
                       <td><small style={{color:'#777'}}>{order.id.substring(0, 8)}...</small></td>
                       <td>{formatDateOnly(order.created_at)}</td>
                       <td style={{ fontWeight: 'bold', color: '#fff' }}>{order.user?.username || 'Unknown'}</td>
-                      <td style={{ color: order.user?.license_number ? '#00d2ff' : '#555', textAlign: 'center' }}>
-                        {order.user?.license_number || '-'}
-                      </td>
+                      <td style={{ color: order.user?.license_number ? '#00d2ff' : '#555', textAlign: 'center' }}>{order.user?.license_number || '-'}</td>
                       <td style={{ color: '#ffc107' }}>{formatDateOnly(order.received_date)}</td>
                       <td>
                         <ul style={{ paddingLeft: '15px', margin: 0, fontSize: '0.85rem', color: '#ccc' }}>
-                          {order.order_items?.map((item) => (
-                            <li key={item.id}>
-                              {item.weapon?.name} <span style={{color: '#888'}}>x{item.quantity}</span>
-                            </li>
-                          ))}
+                          {order.order_items?.map((item) => <li key={item.id}>{item.weapon?.name} <span style={{color: '#888'}}>x{item.quantity}</span></li>)}
                         </ul>
                       </td>
                       <td style={{ color: '#28a745' }}>${Number(order.total_price).toLocaleString()}</td>
                       <td>
-                        <span className="status-badge" style={{
-                          backgroundColor: 
-                            order.status === OrderStatus.APPROVED ? 'rgba(40, 167, 69, 0.2)' : 
-                            order.status === OrderStatus.REJECTED ? 'rgba(220, 53, 69, 0.2)' : 'rgba(255, 193, 7, 0.2)',
-                          color: 
-                            order.status === OrderStatus.APPROVED ? '#28a745' : 
-                            order.status === OrderStatus.REJECTED ? '#dc3545' : '#ffc107'
-                        }}>
-                          {order.status.toUpperCase()}
-                        </span>
+                         <span className="status-badge" style={{
+                          backgroundColor: order.status === OrderStatus.APPROVED ? 'rgba(40, 167, 69, 0.2)' : order.status === OrderStatus.REJECTED ? 'rgba(220, 53, 69, 0.2)' : 'rgba(255, 193, 7, 0.2)',
+                          color: order.status === OrderStatus.APPROVED ? '#28a745' : order.status === OrderStatus.REJECTED ? '#dc3545' : '#ffc107'
+                        }}>{order.status.toUpperCase()}</span>
                       </td>
                       <td style={{ textAlign: 'center' }}>
                         {order.status === OrderStatus.PENDING && (
@@ -462,14 +352,7 @@ const AdminDashboard = () => {
         <div className="dark-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
             <h3>👤 จัดการสมาชิก ({filteredUsers.length})</h3>
-
-            {/* ✅ 3. Filter User Status */}
-            <select 
-              value={userFilter}
-              onChange={(e) => setUserFilter(e.target.value as 'all'|'verified'|'pending')}
-              className="form-select"
-              style={{ width: '200px', padding: '8px' }}
-            >
+            <select value={userFilter} onChange={(e) => setUserFilter(e.target.value as any)} className="form-select" style={{ width: '200px', padding: '8px' }}>
               <option value="all">ทั้งหมด (All Users)</option>
               <option value="pending">⏳ รออนุมัติ (Pending)</option>
               <option value="verified">✓ ยืนยันแล้ว (Verified)</option>
@@ -477,18 +360,9 @@ const AdminDashboard = () => {
           </div>
 
           <div className="table-container">
-            {loadingUsers ? <p style={{color: '#aaa'}}>Loading users...</p> : (
+            {loading.users ? <p style={{color: '#aaa'}}>Loading users...</p> : (
               <table className="cyber-table">
-                <thead>
-                  <tr>
-                    <th>Username</th>
-                    <th>Role</th>
-                    <th>License No.</th>
-                    <th>เอกสารยืนยัน</th>
-                    <th>สถานะ</th>
-                    <th style={{ textAlign: 'center' }}>Action</th>
-                  </tr>
-                </thead>
+                <thead><tr><th>Username</th><th>Role</th><th>License No.</th><th>เอกสารยืนยัน</th><th>สถานะ</th><th style={{ textAlign: 'center' }}>Action</th></tr></thead>
                 <tbody>
                   {filteredUsers.map((user) => (
                     <tr key={user.id}>
@@ -497,42 +371,17 @@ const AdminDashboard = () => {
                       <td>{user.license_number || <span style={{color:'#555'}}>-</span>}</td>
                       <td>
                         {user.license_image ? (
-                          <a 
-                            href={`http://localhost:3000/uploads/${user.license_image}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            style={{ color: '#00d2ff', textDecoration: 'underline', fontSize: '0.9rem' }}
-                          >
-                            📄 ดูรูปภาพ
-                          </a>
-                        ) : (
-                          <span style={{ color: '#555', fontStyle: 'italic' }}>ไม่มีเอกสาร</span>
-                        )}
+                          <a href={`http://localhost:3000/uploads/${user.license_image}`} target="_blank" rel="noopener noreferrer" style={{ color: '#00d2ff', textDecoration: 'underline', fontSize: '0.9rem' }}>📄 ดูรูปภาพ</a>
+                        ) : (<span style={{ color: '#555', fontStyle: 'italic' }}>ไม่มีเอกสาร</span>)}
                       </td>
                       <td>
-                        {user.is_verified ? (
-                          <span style={{ color: '#28a745', fontWeight: 'bold' }}>✓ Verified</span>
-                        ) : (
-                          <span style={{ color: '#ffc107', fontWeight: 'bold' }}>⏳ Pending</span>
-                        )}
+                        {user.is_verified ? (<span style={{ color: '#28a745', fontWeight: 'bold' }}>✓ Verified</span>) : (<span style={{ color: '#ffc107', fontWeight: 'bold' }}>⏳ Pending</span>)}
                       </td>
                       <td style={{ textAlign: 'center' }}>
                         {!user.is_verified && user.role !== 'admin' && (
                           <div style={{ display: 'flex', justifyContent: 'center', gap: '5px' }}>
-                            <button 
-                              onClick={() => handleVerifyUser(user.id)}
-                              className="btn-action"
-                              style={{ backgroundColor: '#28a745', color: 'white', padding: '5px 12px', fontSize: '0.8rem', width: 'auto' }}
-                            >
-                              อนุมัติ
-                            </button>
-                            <button 
-                              onClick={() => handleRejectUser(user.id)}
-                              className="btn-action"
-                              style={{ backgroundColor: '#dc3545', color: 'white', padding: '5px 12px', fontSize: '0.8rem', width: 'auto' }}
-                            >
-                              ปฏิเสธ
-                            </button>
+                            <button onClick={() => handleVerifyUser(user.id)} className="btn-action" style={{ backgroundColor: '#28a745', color: 'white', padding: '5px 12px', fontSize: '0.8rem', width: 'auto' }}>อนุมัติ</button>
+                            <button onClick={() => handleRejectUser(user.id)} className="btn-action" style={{ backgroundColor: '#dc3545', color: 'white', padding: '5px 12px', fontSize: '0.8rem', width: 'auto' }}>ปฏิเสธ</button>
                           </div>
                         )}
                       </td>
@@ -544,7 +393,6 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

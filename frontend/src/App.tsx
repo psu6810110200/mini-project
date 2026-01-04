@@ -15,7 +15,8 @@ import { CartProvider } from './context/CartContext';
 import CartPage from './pages/CartPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
-import ProfilePage from './pages/ProfilePage'; // ✅ Import เข้ามา
+import ProfilePage from './pages/ProfilePage';
+import { AdminProvider } from './context/AdminContext'; // ✅ Import เข้ามา
 
 // Route Guard: ต้อง Login ก่อน
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -60,57 +61,61 @@ function App() {
   return (
     <AuthProvider>
       <CartProvider> 
-        {shouldShowNavbar && <Navbar />}
+        {/* ✅ เพิ่ม AdminProvider ตรงนี้ เพื่อให้ทุกหน้าเรียกใช้ Context นี้ได้ */}
+        <AdminProvider> 
+          
+          {shouldShowNavbar && <Navbar />}
+          
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            
+            <Route path="/" element={
+              <ProtectedRoute>
+                <HomePage />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/product/:id" element={
+              <ProtectedRoute>
+                <ProductDetailPage />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin" element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            } />
+
+            <Route path="/cart" element={
+              <ProtectedRoute>
+                <CartPage />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/order-success" element={
+              <ProtectedRoute>
+                 <OrderSuccessPage />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/orders" element={
+              <ProtectedRoute>
+                <OrderHistoryPage />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            } />
+            
+          </Routes>
+          <ToastContainer position="top-right" autoClose={3000} />
         
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          
-          <Route path="/" element={
-            <ProtectedRoute>
-              <HomePage />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/product/:id" element={
-            <ProtectedRoute>
-              <ProductDetailPage />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/admin" element={
-            <AdminRoute>
-              <AdminDashboard />
-            </AdminRoute>
-          } />
-
-          <Route path="/cart" element={
-            <ProtectedRoute>
-              <CartPage />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/order-success" element={
-            <ProtectedRoute>
-               <OrderSuccessPage />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/orders" element={
-            <ProtectedRoute>
-              <OrderHistoryPage />
-            </ProtectedRoute>
-          } />
-
-          {/* ✅ เพิ่ม Route Profile */}
-          <Route path="/profile" element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          } />
-          
-        </Routes>
-        <ToastContainer position="top-right" autoClose={3000} />
+        </AdminProvider>
       </CartProvider>
     </AuthProvider>
   );
