@@ -233,7 +233,7 @@
   }
 }
 
-/* --- Weapon Card & General Styles (คงเดิมไว้บางส่วน) --- */
+/* --- Weapon Card & General Styles --- */
 .weapon-card {
   background-color: #1a1a1a;
   border: 1px solid #333;
@@ -252,8 +252,6 @@
   box-shadow: 0 10px 20px rgba(0,0,0,0.5);
   border-color: var(--primary);
 }
-
-/* (Copy ส่วนตกแต่ง Card, Badge, Pagination เดิมมาใช้ได้เลย หรือใช้ด้านล่างนี้ที่รวมไว้ให้แล้ว) */
 
 /* แถบสีด้านบน */
 .weapon-card::before {
@@ -297,3 +295,37 @@
 .page-info { font-family: monospace; display: flex; gap: 8px; align-items: baseline; }
 .current-page { font-size: 1.8rem; font-weight: 900; color: var(--primary); }
 .total-pages { color: #888; }
+
+/* --- เพิ่ม CSS ปุ่มตะกร้า (Add Cart Icon Button) --- */
+.cart-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #444;
+  background-color: #2a2a2a;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* เด้งดึ๋งเล็กน้อย */
+}
+
+.cart-icon-btn:hover:not(:disabled) {
+  background-color: #28a745; /* สีเขียวเมื่อเอาเมาส์ชี้ */
+  border-color: #28a745;
+  transform: scale(1.15) rotate(-5deg); /* ขยายและเอียงนิดหน่อย */
+  box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+}
+
+.cart-icon-btn:active:not(:disabled) {
+  transform: scale(0.9);
+}
+
+.cart-icon-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background-color: #1a1a1a;
+  border-color: #333;
+}

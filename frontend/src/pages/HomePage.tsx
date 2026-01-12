@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { getWeapons, type WeaponsResponse } from '../api/weaponApi';
 import { type Weapon, WeaponCategory } from '../types'; 
 import './HomePage.css'; 
 import { useNavigate } from 'react-router-dom';
+import { CartContext } from '../context/CartContext';
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const { addToCart } = useContext(CartContext)!; // เรียกใช้ context
+
   const [weapons, setWeapons] = useState<Weapon[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -224,18 +227,18 @@ const HomePage = () => {
                     <div key={weapon.id} className={`weapon-card ${getCardClass(weapon.category)}`}>
                       <h3 style={{ marginTop: '0', marginBottom: '10px', color: 'white' }}>{weapon.name}</h3>
                       
-                      {/* --- ส่วนที่แก้ไข: ปรับการแสดงผลรูปภาพ --- */}
+                      {/* --- ส่วนรูปภาพ --- */}
                       <div style={{ 
                         width: '100%', 
                         height: '180px', 
-                        backgroundColor: '#fff',  // เปลี่ยนพื้นหลังเป็นสีขาว
+                        backgroundColor: '#fff',
                         marginBottom: '10px', 
                         borderRadius: '4px', 
                         overflow: 'hidden', 
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center',
-                        border: '1px solid #444' // เพิ่มขอบเล็กน้อย
+                        border: '1px solid #444'
                       }}>
                           <img 
                             src={weapon.image || "https://placehold.co/400x300?text=No+Image"} 
@@ -243,13 +246,12 @@ const HomePage = () => {
                             style={{ 
                               width: '100%', 
                               height: '100%', 
-                              objectFit: 'contain', // เปลี่ยนเป็น contain เพื่อให้เห็นรูปเต็ม
-                              padding: '10px'       // เพิ่ม padding ให้รูปไม่ชิดขอบ
+                              objectFit: 'contain',
+                              padding: '10px'
                             }}
                             onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/400x300?text=Error"; }}
                           />
                       </div>
-                      {/* ------------------------------------- */}
 
                       <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span className="badge" style={{ ...getBadgeStyle(weapon.category), textTransform: 'uppercase' }}>
@@ -268,30 +270,49 @@ const HomePage = () => {
                           <div className="stock">เหลือ: {weapon.stock} ชิ้น</div>
                         </div>
                         
-                        <button 
-                          onClick={() => navigate(`/product/${weapon.id}`)} 
-                          className="view-product-btn"
-                          style={{ 
-                            padding: '8px 20px', 
-                            backgroundColor: '#ffc107', 
-                            color: 'black', 
-                            border: 'none', 
-                            cursor: 'pointer', 
-                            borderRadius: '50px',
-                            fontWeight: 'bold',
-                            transition: 'transform 0.2s, background-color 0.2s'
-                          }}
-                          onMouseOver={(e) => {
-                            e.currentTarget.style.transform = 'scale(1.05)';
-                            e.currentTarget.style.backgroundColor = '#ff8f00';
-                          }}
-                          onMouseOut={(e) => {
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.backgroundColor = '#ffc107';
-                          }}
-                        >
-                          ดูสินค้า
-                        </button>
+                        {/* Wrapper สำหรับปุ่มทั้ง 2 */}
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                          
+                          {/* ปุ่มเพิ่มลงตะกร้า */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              addToCart(weapon);
+                            }}
+                            disabled={weapon.stock === 0}
+                            className="cart-icon-btn"
+                            title="เพิ่มลงตะกร้า"
+                          >
+                            🛒
+                          </button>
+
+                          {/* ปุ่มดูสินค้า */}
+                          <button 
+                            onClick={() => navigate(`/product/${weapon.id}`)} 
+                            className="view-product-btn"
+                            style={{ 
+                              padding: '8px 15px',
+                              backgroundColor: '#ffc107', 
+                              color: 'black', 
+                              border: 'none', 
+                              cursor: 'pointer', 
+                              borderRadius: '50px',
+                              fontWeight: 'bold',
+                              fontSize: '0.9rem',
+                              transition: 'transform 0.2s, background-color 0.2s'
+                            }}
+                            onMouseOver={(e) => {
+                              e.currentTarget.style.transform = 'scale(1.05)';
+                              e.currentTarget.style.backgroundColor = '#ff8f00';
+                            }}
+                            onMouseOut={(e) => {
+                              e.currentTarget.style.transform = 'scale(1)';
+                              e.currentTarget.style.backgroundColor = '#ffc107';
+                            }}
+                          >
+                            ดูสินค้า
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))
